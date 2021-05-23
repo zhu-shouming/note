@@ -1,0 +1,36 @@
+**指定模板路径**
+
+> 项目目录下创建**templates**目录，存放html代码
+>
+> 全局配置文件(TEMPLATES)：
+>
+> - 'BACKEND'：模板引擎
+> - 'DIRS'：指定模板的路径
+> - 'APP_DIRS'：TRUE代表子应用中有templates目录也会去查找，FALSE反之
+> - 'OPTIONS'：模板中的一些上下文处理器
+
+**视图指向模板**
+
+```python
+from django.shortcuts import render
+class ProjectViews(View):    
+	def get(self, request):        
+        return render(request, 'index.html')
+```
+
+**MTV模式和两种开发模式**
+
+**1、MTV介绍**
+
+> M全拼Model,与MVC中的M功能相同,负责和数据库交互,数据处理
+>
+> V全拼View,与MVC中的C功能相同,接收请求,进行业务处理,返回响应
+>
+> T全拼Template,与MVC中的V功能相同,负责构造要返回的html页面
+
+**2、两种开发模式**
+
+> 前后端分离：后端只返回数据，如：JsonResponse(data=data, safe=False)
+>
+> 前后端不分离
+

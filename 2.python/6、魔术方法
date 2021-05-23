@@ -1,0 +1,157 @@
+##### with和上下文管理器
+
+>  上下文管理协议：包含`__enter__()`和`__exit__()`方法
+>
+>  上下文管理器：支持“上下文管理协议”的对象 
+
+```python 
+# 定义一个上下文管理器
+class MyClass(object):
+    def __enter__(self):
+        print('__enter__ is running...')
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        print('__exit__ is running...')
+if __name__ == '__main__':
+    obj = MyClass()
+    with obj as f:	# f为__enter__()返回值
+        print('with is running...')
+"""运行结果：__enter__ is running...
+			with is running...
+			__exit__ is running..."""
+```
+
+##### `__call__`：任何对象，只有要`__call__`属性就能被调用
+
+```python
+def add(x, y):
+    return x + y
+def Myclass(object):
+    pass
+def MyClass2(object):
+    def __call__(self, *args, **kwargs):
+        pass
+if __name__ = '__main__':
+    print(callable(add))	# True，callable()判断对象是否可以调用
+    print(callable(Myclass()))	# False
+    print(callable(Myclass2()))	# True
+    print((lamdba x, y:x + y)(1, 3))	# 4，lamdba函数具有__call__属性，可直接被调用
+```
+
+##### `__init__`和`__new__`的区别
+
+> `__new__`：创建并返回一个对象，并把对象传给`__init__`
+>
+> `__init__`：初始化对象
+
+```python
+def MyClass(object):	# object具有__init__和__new__属性
+    def __init__(self):	
+        pass
+    def __new__(cls, *args, **kwargs):	# 方法重写
+        pass   
+if __name__ = '__main__':
+    a = MyClass()
+	print(type(a))	# <class 'NoneType'>，因为重写了__new__方法，当创建一个对象，会调用__new__创建并返回一个对象，再调用__init__初始化对象
+```
+
+##### `__str__()`：使用print()函数打印对象，会默认调用对象的`__str__()`方法
+
+##### `__repr__`:与`__str__`功能相似，为了更清楚的表达
+
+##### `__add__()`：具有`__add__()`方法的对象可以相加
+
+##### `__sub__()`：具有`__sub__()`方法的对象可以相减
+
+##### `__del__()`：使用del或程序运行结束都会执行对象`__del__()`方法
+
+##### `__getitem__()`：当对象可以通过下标取值会自动执行`__getitem__()`
+
+##### `__getattr__()`：当获取对象的属性时，会自动执行
+
+##### `__setattr____()`：对属性复制或修改时，会自动执行
+
+##### `__delattr__()`：删除对象属性
+
+##### `__bases__`：一个元组，存放的是继承的类
+
+##### `__dict__：一个字典，存放对象的属性信息`
+
+##### `__slots__`：是一个元组，限制对象有哪些属性，定义slots后，就不再有dict
+
+##### 鸭子类型：一种动态类型的风格
+
+```python
+class F(object):
+    pass
+class S1(F):
+    def show(self):
+        print('S1.show')
+class S2(object):
+    def show(self):
+        print('S2.show')
+def Func(obj):
+    """Func函数需要接收一个对象具有show()"""
+    obj.show()
+if __name__ = '__main__':
+    s1_obj = S1()
+    Func(s1_obj)	# S1.show
+    s2_obj = S2()
+	Func(s2_obj)	# S2.show
+```
+
+##### 类方法的使用：通常是为了创建对象
+
+```python
+class Person(object):
+    def __init__(self, first_name, last_name):
+        self.first_name = first_name
+        self.last_name = last_name
+    @classmethod
+    def full_name(cls, name):
+        first_name, last_name = map(str, name.split(' '))
+        obj = cls(first_name, last_name)
+        return obj
+if __name__ = '__main__':
+    teacher = Person.full_name('张 老师')
+```
+
+
+
+```python
+"""基于pymysql模块实现一个数据库操作的上下文管理器（
+目的：实现自动关闭连接对象和游标）"""
+import pymysql
+
+class ReadSQL(object):
+    def __enter__(self):
+        self.conn = pymysql.connect(host='test.lemonban.com',
+                                    user='test',
+                                    password='test',
+                                    database='future',
+                                    port=3306)
+        self.cur = self.conn.cursor()
+        print('数据库已连接')
+        return self.cur
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.cur.close()
+        self.conn.close()
+        print('关闭连接对象和游标')
+```
+
+```python
+"""自定义一个列表类型，保留列表本身就有的列表之间相加的功能，另外再实现对象可以之间可以使用 - 来进行操作,要求：如果一个对象减去另一个对象，则把和被减对象中一样的数据给删除掉，如下：
+li1 = MyList([11, 22, 33, 44])
+li2 = MyList([1, 22])
+res = li1 - li2
+res 打印的结果为[11,33,44]"""
+class MyList(list):
+    def __sub__(self, other):
+        for i in other:
+            if i in self:
+                self.remove(i)
+        return self
+```
+
+
+

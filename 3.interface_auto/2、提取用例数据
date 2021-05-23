@@ -1,0 +1,47 @@
+#### 分离测试用例里测试数据
+
+```python
+# 测试用例类
+class LoginTestCase(unittest.TestCase):
+    def __init__(self, methodname, excepted, data):
+        super().__init__(methodname)	# 必须继承父类的__init__，TestCase中使用测试用例类(测试用例方法)，实际上就是创建一个测试用例对象。
+        self.excepted = excepted
+        self.data = data
+        
+    def test_login(self):
+        res = login_check(*data)
+        try:
+            self.assertEqual(self.excepted, res)	
+        except AssertionError as e:
+            print('用例执行未通过')	
+            print(f'预期结果：{self.excepted}')
+            print(f'实际结果：{res}')
+            raise e
+        else:
+            print('用例执行通过')
+            print(f'预期结果：{self.excepted}')
+            print(f'实际结果：{res}')
+```
+
+```python
+# 测试用例执行文件
+suite = unittest.TestSuite()
+cases = [
+    {'excepted':{'code': 0, 'msg': '登录成功'},data;('xiaoming', '123456')},
+    {'excepted':{'code': 1, 'msg': '账号或密码不正确'}, data:('xiaoming', '1325647')},
+    {'excepted':{'code': 0, 'msg': '密码长度在6-18为之间'}, data:('xiaoming','123')},
+    {'excepted':{'code': 0, 'msg': '密码长度在6-18为之间'}, data:('xiaoming','12345678912345678913')},
+    {'excepted':{'code': 1, 'msg': '账号或密码不正确'}, data:('xiao','123456')}
+]
+for case in cases:
+	suite.addTest(LoginTestCase('test_login', case['excepted'], case['data']))	# 循环添加一个测试用例，需要传入测试用例初始化参数
+with open('report.html', 'wb')as fb:
+    runner = HTMLTestRunner(stream=fb,
+                            verbosity=2,
+                            title='小明测试',
+                            description='接口测试用例',
+                            tester='xiaoming')
+    runner.run(suite)
+    
+```
+

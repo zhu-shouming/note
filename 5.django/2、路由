@@ -1,0 +1,51 @@
+### 路由
+
+- 创建第一个视图、路由
+
+```python
+# 应用程序/views.py
+from django.http import HttpResponse
+def index(request):
+    return HttpResponse('hello django')
+
+# 应用程序下创建urls.py:1、导入视图函数；2、urlpatterns添加指向视图的路由
+from django.urls import path
+from . import views
+urlpatterns = [
+    path('', views.index),
+]
+
+# 全局urls.py
+from django.contrib import admin
+from django.urls import path, include
+urlpatterns = [
+    path('pools/', include('pools.urls')),
+    path('admin/', admin.site.urls),
+]
+```
+
+##### 定义路由
+
+- __include('子应用.urls')__函数可定义指向其他的子路由
+
+- __path('指向的路由', '指向的视图')__函数有4个参数，2个关键参数
+
+- __repath()__函数：使用正则表达式匹配路径，固定格式：__r'^+正则表达式+/$'__
+
+  ```python
+  urlpatterns = [
+      path(r'^project/(?P<pk>\d{2})/$', index1) #匹配任意两位小数
+  ]
+  ```
+
+- 路径参数：路由可接受参数
+
+  ```python
+  # 固定格式：<类型转化器:参数名称>，参数类型：int、str、slug、uuid等
+  urlpatterns = [
+      path('project/<int:a>', index1)
+  ]
+  #views.py
+  def index1(request, a):
+      return HttpResponse(f'项目id为{a}')
+  ```

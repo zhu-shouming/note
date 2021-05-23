@@ -1,0 +1,27 @@
+进程：应用程序的动态执行的过程
+
+进程的状态：运行、等待、就绪
+
+```python
+"""
+在python中，执行一个python脚本，就会创建一个进程
+可以用os.getpid()获得进程的PID
+"""
+from multiprocessing import Process
+def test():
+    print(f'子进程ID：{os.getpid()}运行了')
+if __name__ = '__main__':
+    # 主进程中通过Process创建子进程
+    p1 = Process(target=test)
+    # daemon=True,主进程执行完，不会等待子进程。daemon=False,主进程执行完，会等待子进程。p1.join()主进程会等p1执行完毕后执行
+    p1.daemon = False
+    print(f'主进程ID：{os.getpid()}运行了')
+    p1.start()	# 开始进程
+```
+
+
+
+每创建一个进程，CPU都会单独分配资源，所以多个进程不会共享全局变量
+
+多进程中使用队列共享数据
+

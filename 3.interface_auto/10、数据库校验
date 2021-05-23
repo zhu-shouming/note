@@ -1,0 +1,87 @@
+#### 数据库基本使用
+
+##### 1、连接数据库
+
+```python
+# 连接数据
+conn = pymysql.connect(host="",	# 数据库地址
+                       port=,	# 端口号
+                       user="",	# 用户名
+                       password="",	# 密码
+                       database="")	# 数据库名
+# 创建游标对象
+cur = conn.cursor()
+```
+
+##### 2、执行sql语句
+
+```python
+sql = "sql语句"
+res = cur.execute(sql)	# res存放返回的数据条目，返回的数据存储在游标对象中
+```
+
+##### 3、获取结果
+
+```python
+data = cur.fetchone()	# 获取查询集的第一条数据
+data1 = cur.fetchall()	# 获取查询到所有数据
+```
+
+**注：执行增加、删改、修改数据的sql语句时，执行完了要提交事务才会生效**
+
+```python
+# 通过连接对象提交事务
+conn.commit()
+```
+
+##### 4、关闭游标，断开连接
+
+```python
+cur.close()
+conn.close()
+```
+
+#### 操作数据库封装
+
+```python
+# 配置文件读取的数据
+HOST = myconf.get('mysql', 'host')
+PORT = myconf.getint('mysql', 'port')
+USER = myconf.getint('mysql', 'user')
+PASSWORD = myconf.getint('mysql', 'password')
+DATABASE = myconf.getint('mysql', 'database')
+
+class DoMysql(object):
+    def __init__(self):
+        # 建立连接
+        self.conn = pymysql.connect(host=HOST,
+                                    port=PORT,
+                                    user=USER,
+                                    password=PASSWORD,
+                                    database=DATABASE)
+        self.cur = self.conn.cursor()
+
+    def close(self):
+        # 关闭游标对象，断开连接
+        self.cur.close()
+        self.conn.close()
+
+    def find_count(self, sql):
+        # 执行sql语句返回的数据条目
+        self.conn.commit()
+        count = self.cur.execute(sql)
+        return count
+
+    def find_one(self, sql):
+        # 获取查询集中的第一条数据
+        self.conn.commit()	# 同步数据库中数据的最新状态
+        self.cur.execute(sql)
+        return self.cur.fetchone()
+
+    def find_all(self, sql):
+        # 获取查询的所有内容
+        self.conn.commit()
+        self.cur.execute(sql)
+        return self.cur.fetchall()
+```
+

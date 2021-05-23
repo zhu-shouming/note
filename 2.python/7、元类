@@ -1,0 +1,110 @@
+### 元类
+
+> 类：定义如何创建对象（对象有哪些属性和方法）
+>
+> 对象：类创建具有指定特征真实存在的事物 
+>
+> 对象的类型是什么？
+>
+> ​		比如：小鸡的类型属于家禽
+>
+> 类的类型是什么？（元类）
+>
+> ​		type(1)	# int类型
+>
+> ​		type(int)	# type类型
+
+##### 对象是由它对应的类创建的，类是由元类创建的。元类不仅能创建类，也能创建自己
+
+### 如何使用元类创建类
+
+##### 元类的简单创建
+
+```python
+def __init__(self, name):
+    self.name = name
+def study(self):
+    print(f'{self.name}正在学习')
+# 所有类都是type创建的对象, type(类型，继承的类(元组)，方法和属性(字典))
+student = type('Student', (object,), {
+    '__init__': __init__,
+    'study': study,
+})
+if __name__ == '__main__':
+    print(student)	# <class '__main__.Student'>
+    xiaoming = student('小明'
+    print(xiaoming))	# <__main__.Student object at 0x000001FA9BD124A8>
+    xiaoming.study()	# 小明正在学习
+    
+```
+
+##### 优雅的创建元类
+
+```python
+class MyMetaclass(type):
+    def __new__(cls, name, bases, attrs):
+        """
+        创建对象（对象是一个类）
+        :param name:str，类的名称
+        :param bases:tuple，继承的类
+        :param attrs:dict，方法和属性
+        :return:
+        """
+        name = 'Person'
+        bases = (object,)
+        attrs['name'] = '小明'
+        attrs['age'] = 18
+        return type.__new__(cls, name, bases, attrs)
+# metaclass：指定元类由谁创建的。所有类，如果不指定metaclass，默认为type
+class Myclass(object, metaclass=MyMetaclass):
+    pass
+if __name__ == '__main__':
+    print(Myclass.__bases__)	# (<class 'object'>,)
+    print(Myclass.__dict__)
+    print(Myclass.__name__)		# Person
+```
+
+```python
+"""自定义一个类
+1、进行属性限制，对象只能设置这个三个属性：title、money、data
+2、对属性的类型进行限制：
+	1）title只能设置字符串类型数据；
+	2）money设置为int类型数据；
+	3）data可以设置为任意类型
+3、data属性不能进行删除
+4、当money设置的值少于0时，确保查询出来的值为0"""
+class Base(object):
+    # 限制属性个数
+    __slots__ = ('title', 'money', 'data')
+    
+    def __init__(self, title, money, data):
+        self.title = title
+        self.money = money
+        self.data = data
+        # 限制属性类型
+        if not isinstance(self.title, str):
+            raise TypeError('title属性必须设置为字符串数据')
+        elif not isinstance(self.money, int):
+            raise TypeError('money属性必须设置为int数据')
+        elif self.money < 0:
+            self.money = 0
+
+    def __delattr__(self, item):
+        if item == 'data':
+            raise AttributeError('data属性不能删除')
+        super.__delattr__(item)
+```
+
+```python
+"""自定义一个元类
+在创建类的时候，自动给类添加（class_name,create_time）这两个类属性"""
+class MyMetaclass(type):
+    def __new__(cls, name, bases, attrs):
+        attrs['class_name'] = name
+        attrs['create_time'] = datetime.datetime.now()
+        return super().__new__(cls, name, bases, attrs)
+
+class MyClass(object, metaclass=MyMetaclass):
+    pass
+```
+

@@ -1,0 +1,48 @@
+**如何让一个接口有多重请求方式？（get、post、put...）**
+
+> django默认可以发起get、option请求，若想发起默认请求以外的请求，需要携带CSRF TOKEN才行。注释掉全局配置下'django.middleware.csrf.CsrfViewMiddleware'中间件即可。
+
+### 函数视图
+
+```python
+# views.py
+def index(request, pk):
+    '''
+    :param request:HttpResquest对象，存放用户所有的请求信息
+    使用HttpResquest对象中method属性获取请求方法
+    通过不同的请求方法，执行不同的逻辑
+    '''
+    fun = request.method
+    if fun == 'GET':
+        return HttpResponse(f'项目：{pk}，这是一个{request.method}请求，hello django')
+    elif fun == 'POST':
+        return HttpResponse(f'项目：{pk}，这是一个{request.method}请求，hello django')
+    else:
+        return HttpResponse(f'项目：{pk}，这是一个{request.method}请求，hello django')
+```
+
+### 类视图
+
+```python
+"""
+1、必须继承View父类或者View子类
+2、不同的请求方法和不同的请求方式是一一对应的
+3、定义路由指向类视图
+"""
+# views.py
+from django.views import View
+class ProjectViews(View):
+    def get(self, request):
+        return HttpResponse(f'这是一个{request.method}请求，hello django')
+    def post(self, request):
+        return HttpResponse(f'这是一个{request.method}请求，hello django')
+    def put(self, request):
+        return HttpResponse(f'这是一个{request.method}请求，hello django')
+    
+# urls.py
+urlpatterns = [
+    # as_view()为一个装饰器，将不同的方法分发
+    path('', views.ProjectViews.as_view()),
+]
+```
+

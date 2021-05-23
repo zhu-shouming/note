@@ -1,0 +1,124 @@
+### 进程和线程的关系
+
+> 1、进程里可以创建线程，一个程序至少一个进程，一个进程至少一个线程
+>
+> 2、进程拥有资源（内存等），线程不拥有资源
+>
+> 3、同属于一个进程中的线程可以__共享CPU分配的全部资源__
+>
+> 4、多个线程的切换速度比多个进程快，消耗的资源也少
+>
+> 5、多个线程可以并行地在多核CPU中执行
+>
+> 6、线程是CPU`调度`和分配的基本单位，进程是`系统资源`分配的基本单元
+>
+> 7、线程是由操作系统调用
+>
+> 8、协程是由用户调用
+
+### 创建多线程的方式
+
+##### 直接调用threading模块
+
+```python
+"""
+线程类：threading.Thread()
+线程任务：target
+线程任务的参数：args
+线程名：name
+"""
+import threading
+def say(user):
+    for i in range(5):
+        print(f'{user}:{threading.current_thread().name}正在运行')
+if __name__ == '__main__':
+    t1 = threading.Thread(target=say, args=('小明',), name='线程1')
+    t2 = threading.Thread(target=say, args=('小红',), name='线程2')
+    t1.start()  # 启动线程
+    t2.start()
+    t1.join()  # 等待t1线程执行完
+    t2.join()
+    print('运行结束')
+```
+
+##### 继承线程类
+
+```python
+class MyThread(threading.Thread):
+    def __init__(self, user):
+        super(MyThread, self).__init__()
+        self.user = user
+
+    def run(self) -> None:
+        """启动线程的时候会调用此方法"""
+        for i in range(5):
+            print(f'{self.user}:{threading.current_thread().name}正在运行')
+if __name__ == '__main__':
+    t1 = MyThread('小明')
+    t2 = MyThread('小红')
+    t1.start()
+    t2.start()
+```
+
+### 线程锁
+
+##### 注：当多个线程修改一个全局变量，因为线程是并行地执行，所以会导致数据修改错误，也就是线程不安全，需要加锁
+
+```python
+count = 0
+lock = threading.Lock()
+def work():
+    global count
+    for i in range(1000000):
+        with lock:	# 防止同时修改全局变量
+            count += 1
+if __name__ == '__main__':
+    t1 = threading.Thread(target=work)
+    t2 = threading.Thread(target=work)
+    t1.start() 
+    t2.start()
+    t1.join() 
+    t2.join()
+    print(count)
+```
+
+### 线程池
+
+>  使用线程池可以很好地提升性能 , 尤其是当程序中需要创建大量生存期很短暂的线程时 
+>
+>  使用线程池可以有效地控制系统中并发线程的数量 
+
+##### 内置库实现线程池的使用
+
+```python
+"""线程池的基类是concurrent.futures模块中的Executor，
+Executor提供了两个子类，即ThreadPoolExecutor和ProcessPoolExecutor，
+ThreadPoolExecutor用于创建线程池，而ProcessPoolExecutor用于创建进程池。
+Executor常用方法：
+	submit(fn, *args, **kwargs)：将fn函数提交给线程池。
+	map(func, *iterables, timeout=None, chunksize=1)：该函数类似于全局函数 map(func, *iterables)
+	shutdown(wait=True)：关闭线程池。"""
+# submit方法会返回一个Future对象，Future类主要用于获取线程任务函数的返回值
+from concurrent.futures import ThreadPoolExecutor
+def test():
+    return '执行完毕'
+if __name__ == '__main__':
+    threadPool = ThreadPoolExecutor(max_workers=4, thread_name_prefix='test_')	# 创建一个最大线程数为4的线程池
+    future = threadPool.submit(test)	# 将任务test交给线程池	
+    print(future.done())	# 任务成功完成返回True
+    print(future.result())	# 返回任务返回结果
+```
+
+##### threadpool实现线程池的使用
+
+```python
+def test(s):
+    print(f'{s}:{threading.current_thread().name}')
+if __name__ == '__main__':
+    pool = threadpool.ThreadPool(4)	# 定义了一个线程
+    reqs = threadpool.makeRequests(test, ['aa', 'bb'])	# 创建了要开启多线程的函数
+    for req in reqs:	# 将所有要运行多线程的请求扔进线程池
+        pool.putRequest(req)
+    pool.wait()	# 等待所有的线程完成工作后退出
+```
+

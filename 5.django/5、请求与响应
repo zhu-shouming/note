@@ -1,0 +1,48 @@
+### 请求
+
+**1、QueryDict查询字符串参数，例如：?name=xiaoming&age=18**
+
+> 使用**request.GET**获取参数
+>
+> 获取参数值方式： request.GET['name']或 request.GET.get('name')
+>
+> query string可以传相同参数，通过键访问只能获取最后一个值，若想获取全部参数，可以是用__request.GET.getlist('参数名')__
+
+**2、请求体的方式传递不同参数**
+
+- 传递x-www-form-urlencoded请求体参数
+
+  __requesr.POST__获取参数值，是QueryDict类型
+
+- 传递raw请求体参数
+
+  __request.body__获取参数值，是bytes类型
+
+  ```python
+  # raw/json类型参数
+  import json
+  json_str = request.body.decode('utf-8')	# 字节解码为json字符串
+  json_dict = json.loads(json_str)	# json字符串转换成dict
+  ```
+
+- 传递form-data参数
+
+  文本参数通过__request.POST__获取
+
+  非文本参数通过__request.body__获取
+
+
+**3、请求头传递参数**
+
+​	使用__request.META__获取请求头参数
+
+​	请求头中的参数会自动转换：HTTP_参数名大写
+
+​	注：参数带下划线无法解析，如：name_11
+
+### 响应
+
+- 视图中必须返回HTTPResponse对象或子对象
+- HTTPResponse(content=响应体, content_type=响应体参数类型, status=状态码)
+- JsonResponse
+
