@@ -12,3 +12,21 @@ git提供了git config工具，用来读取获取配置相应的工作环境变�
 
   > git config --global merge.tool vimdiff
 
+- 3、生成SSH Key
+
+  > ssh-keygen -t rsa -C "`zsm2260@qq.com`"
+
+- 4、配置远程仓库秘钥
+
+  > 1.赋值本地公共秘钥id_rsa.pub里面的key
+  >
+  > 2.远程仓库进入Account-->Setting，选择SSH and GPG keys，将本地的秘钥添加到远程仓库上并保存
+  >
+  > 3.验证是否成功：ssh -T `git@github.com`
+
+- 5、添加远程路由，并下拉代码
+
+  > ```
+  > git remote add origin git@github.com:tianqixin/runoob-git-test.git
+  > git clone git@github.com:tianqixin/runoob-git-test.git
+  > ```
