@@ -15,6 +15,7 @@ git提供了git config工具，用来读取获取配置相应的工作环境变�
 - 3、生成SSH Key
 
   > ssh-keygen -t rsa -C "`zsm2260@qq.com`"
+  > 命令中的email就是github的账号，需要保持一致。
 
 - 4、配置远程仓库秘钥
 
