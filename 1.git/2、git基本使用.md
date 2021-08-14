@@ -32,6 +32,8 @@
 >
 > $ git remote add `<alias> <url>`:添加远程仓库并起别名
 >
+> $ git remote rm name:删除一个仓库连接
+>
 > $ git pull origin main:远程仓库代码同步到本地
 >
 > $  git push origin main:本地代码合并到远程仓库
@@ -51,3 +53,27 @@
 > ​	4、合并修补程序：git merge zsm
 >
 > ​	5、删除分支：git branch -d zsm
+
+##### 问题
+
+**1.github打开缓慢问题**
+
+- 修改HOST文件
+
+  1. 管理员身份打开记事本，记事本选择文件类型打开HOST文件
+
+  > 文件路径： C:\WINDOWS\system32\drivers\etc 
+
+  2. 查询3个网址对应的IP地址(可能会改变)
+
+  >  github.com 、assets-cdn.github.com、github.global.ssl.fastly.net
+
+  3. HOST文件添加一下代码
+
+  ```
+  140.82.112.4 github.com
+  185.199.108.153 assets-cdn.github.com
+  199.232.69.194 github.global.ssl.fastly.net
+  ```
+
+  
