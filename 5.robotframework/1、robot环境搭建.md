@@ -42,10 +42,3 @@ pip命令：pip install robotframework==3.1.2
   windows->Preferences->General->Workspace
   ```
 
-### 三、什么是关键字
-
-- 关键字：一定好的功能
-
-  python函数分为：内置函数、第三方库函数及用户自定义函数
-  <font color='red'>**robot关键字分为：内置关键字、第三方库关键字及用户关键字**</font>
-
