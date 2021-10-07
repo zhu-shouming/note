@@ -1,73 +1,115 @@
-### ORM框架
+#### ORM框架
 
 ##### 1、定义
 
 - 把类和数据表进行映射
 - 通过类和对象就能操作它所对应表格中的数据(CURD)
 
-##### 2、步骤
+##### 2、创建数据库连接
 
-- a.全局配置文件setting.py修改DATABASES数据库配置
-
-  > ENGINE：数据库引擎
-  >
-  > NAME：数据库名称
-  >
-  > USER：数据库用户名
-  >
-  > PASSWORD：数据库密码
-  >
-  > HOST：数据库地址
-  >
-  > PORT：端口号
-
-- b.配置数据库连接信息
+- 配置数据库连接信息
 
   - 创建数据库和用户
 
-    >CREATE DATABASE my_database charset=utf-8mb4;
-    >
-    >GRANT ALL PRIVILEGES ON `*.*` TO 'xiaoming'@'%' IDENTIFIED BY '123456';
-    >
-    >flush privileges; 
+    ```sql
+    CREATE DATABASE my_database charset=utf-8mb4;
+    GRANT ALL PRIVILEGES ON `*.*` TO 'xiaoming'@'%' IDENTIFIED BY '123456';
+    flush privileges; 
+    ```
+    
+  - 配置数据库，在全局配置文件下修改数据库配置
+
+    ```python
+    # 指定数据库的配置信息
+    DATABASES = {
+        # 使用的默认数据库信息
+        'default': {
+            # 指定使用的数据库引擎
+            'ENGINE': 'django.db.backends.sqlite3',
+            # 指定使用的数据库名称
+            'NAME': BASE_DIR / 'db.sqlite3',
+            # 指定数据库的用户名
+            'USER': 'root',
+            # 指定数据库的密码
+            'PASSWORD': 123456,
+            # 指定数据库的主机地址
+            'HOST': 'localhost',
+            # 指定数据库的端口号
+            'PORT': 3306
+        }
+    }
+    ```
 
   - 安装mysqlclient
 
-- c.创建模型类(models.py)
+##### 3.mysql中的对象与模型的关联
+
+1. 数据库：需要手动创建数据库
+2. 数据表
+   - 与ORM中的模型类一一对应，在子应用的models.py中定义模型类
+3. 字段
+   - 与模型类的类属性一一对应
+4. 记录
+   - 与模型类对象一一对应
+
+##### 4.定义一个模型并生成表
+
+- 创建模型类
+
+  > 1.定义模型类必须继承Model或Model子类，一个模型类相当于一个table
+  >
+  > 2.使用Field对象定义类属性，相当于表中的字段
 
   ```python
-  # 定义模型类必须继承Model或Model子类，一个模型类相当于一个table
   class People(models.Model):
-      # 定义类属性（Field）对象为表中的字段
-      # 默认表名为应用名_模型类名小写，默认为自动创建一个id主键（自增、非空）
-    name = models.CharField(max_length=20)
+    	name = models.CharField(max_length=20)
       age = models.IntegerField()
   ```
-  
-- d、创建表
 
-  > 1、进入虚拟环境，生成迁移脚本：__python manage.py makemigrations 应用程序__。查看创建表sql语句：python manage.py sqlmigrate 应用程序 迁移脚本
-  >
-  > 2、执行迁移脚本：__python manage.py migrate 应用程序__
+- 生成迁移脚本
 
-##### 3、字段说明
+  会在子应用migrations/目录下生成迁移脚本
+
+  > **python manage makemigrations [appname]**
+
+  python manage.py -h可查看manage工具相关命令
+
+  python manage.py sqlmigrate 应用程序 迁移脚本，查看创建表sql语句
+
+- 执行迁移脚本
+
+  生成的表名默认为：应用名_模型类名小写。默认会自动创建一个（自增、非空）的id主键。
+
+  > **python manage migrate [appname]**
+
+##### 5.模型类字段使用
+
+- CharField指定varchar类型，必须设置max_length参数
+- IntegerField设置整型字段
+- AutoField设置字段自增
+- BooleanField设置布尔类型字段
+- TextField设置长文本类型字段
+- DateTimeField指定日志时间类型字段
+
+##### 6.模型类字段参数说明
+
+- 字段参数设置primary_key=True后，ORM框架不会自动创建id主键
+- db_index=True添加索引
+- db_column指定字段名称，未设置字段名称默认为类属性名称
+- 字段参数verbose_name、help_text指定中文描述，一般在admin后台站点或接口平台文档中使用
+- unique=True设置唯一约束
+- default设置当前字段默认值
+- null指定当前字段是否允许为空值，blank指定前端在创建数据时是否允许不输入空值
+- 参数auto_now_add=True，创建数据时，会自动把当前时间赋值给字段；auto_now=True，在更新数据时，会自动把当前时间赋值给字段。常用于DateTimeField模块
 
 ```python
+# 项目表
 class Projects(models.Model):
-    # IntegerField设置整型字段，一个数据库模型类中值只允许设置一个主键，字段设置primary_key=True后，ORM框架不会自动创建id主键
-    num = models.IntegerField(primary_key=True)
-    
-    # CharField设置字符串类型字段，必须设置参数max_length指定长度。参数verbose_name、help_text指定中文描述，一般在admin后台站点或接口平台文档中使用。unique=True设置唯一约束
-    name = models.CharField(max_length=20, verbose_name='项目名称', help_text='项目名称', unique=True)
-    leader = models.CharField(max_length=10, verbose_name='项目负责人', help_text='项目负责人')
-    
-    # BooleanField设置布尔类型字段，default设置当前字段默认值
-    is_excute = models.BooleanField(verbose_name='是否开展', help_text='是否开展', default=True)
-    
-    # TextField设置长文本类型字段,null指定当前字段是否允许为空值，blank指定前端在创建数据时是否允许不输入空值，db_index=True添加索引，db_column指定字段名称，未设置字段名称默认为类属性名称
-    dess = models.TextField(verbose_name='项目描述信息', help_text='项目描述信息', null=True, blank=True)
-    
-    # DateTimeField指定日志时间类型字段。参数auto_now_add=True，创建数据时，会自动把当前时间赋值给字段；auto_now=True，在更新数据时，会自动把当前时间赋值给字段
+    id = models.AutoField(primary_key=True, verbose_name='id主键', help_text='id主键')
+    name = models.CharField(unique=True, max_length=20, verbose_name='项目名称', help_text='项目名称')
+    leader = models.CharField(max_length=20, verbose_name='项目负责人', help_text='项目负责人')
+    is_execute = models.BooleanField(default=True, verbose_name='项目是否开展', help_text='项目是否展开')
+    desc = models.TextField(null=True, verbose_name='项目描述信息', help_text='项目描述信息')
     create_time = models.DateTimeField(auto_now_add=True, verbose_name='创建时间', help_text='创建时间')
     update_time = models.DateTimeField(auto_now=True, verbose_name='更新时间', help_text='更新时间')
     
@@ -80,17 +122,16 @@ class Projects(models.Model):
         db_table = 'tb_project'	# 指定创建的数据表名称
         verbose_name = '项目表'	# 指定创建的数据表中文描述信息
         verbose_name_plural = '项目表'
-        
-    
 ```
 
-##### 4、表与表关联：模型类使用**ForeignKey**关联
+##### 7、表与表关联：模型类使用**ForeignKey**关联
 
 >表与表之间的关联关系：一对多（ForeignKey）、一对一（OneToOneField）、多对多（ManyToManyField）
 >
 >模型类中添加外键，一般在‘多’的那侧添加外键，一对一时候任何一方均可添加外键，外键字段名推荐使用关联模型类小写命名。
 
 ```python
+# 接口表
 class Interfaces(models.Model):
     id = models.AutoField(primary_key=True, verbose_name='id主键', help_text='id主键')
     name = models.CharField(max_length=15, verbose_name='接口名称', help_text='接口名称', unique=True)
@@ -124,3 +165,4 @@ class Interfaces(models.Model):
 
   
 
+# 46
