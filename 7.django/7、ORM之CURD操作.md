@@ -1,11 +1,20 @@
-### 1、c（create）：创建数据
+#### 一、使用创建模型类实例方式实现CURD操作
 
-- 方式一：通过创建模型类实例，调用save()执行sql语句
+```python
+# 查看执行的SQL语句
+from django.db import connection
+connection.queries
+```
+
+##### 1、创建数据
 
 ```python
 # django提供的命令行终端：python manage.py shell，或视图中均可创建数据
-from pools.models import Projects
-one = Projects(name='测试开发平台项目', leader='小明', is_excute=True)
+# 1、导入模型类
+from projects.models import Projects
+# 2、创建模型类实例，关键字参数的形式添加参数
+a = Projects(name='测试开发平台项目', leader='xiaoming')
+# 3、保存数据  
 one.save()
 
 # 查看生成的SQL语句
@@ -13,22 +22,91 @@ from django.db import connection
 connection.queries
 ```
 
+##### 2、读取数据
+
+```python
+# 通过对象实例.属性值获取数据
+>>>one.name	
+'测试开发平台项目'
+```
+
+##### 3、更新数据
+
+```python
+# 1.通过对象实例.属性值=值 修改属性值
+one.leader = 'xiaohong'
+# 2.通过save()保存修改的数据
+one.save()
+```
+
+##### 4、删除数据
+
+```python
+one.delete()
+```
+
+#### 二、使用模型类manager对象实现CURD操作
+
+模型类manager对象：<font color="red">模型类.objects</font> 
+
+##### 1、创建数据
+
+> 使用manager对象create()方法，通过关键字传参的方式传递数据
+
+```python
+# 导入父表、字表模型类
+from projects.models import Projects
+from interfaces.models import Interfaces
+one_project = Projects.objects.create(name='xxx金融项目2', leader='xiaofang')
+
+# 添加字表数据
+# 方式一：通过projects_id=one_project.id关联父表的id
+Interfaces.objects.create(name='登录接口', tester='jack', projects_id=one_project.id)
+# 方式二：通过projects=one_project关联父表数据
+Interfaces.objects.create(name='注册接口', tester='anny', projects=one_project)
+```
+
+##### 2、查询数据
+
+- 查询一条数据
+
+  ```python
+  # 方式一：使用manager对象的get()方法，返回一个Project模型类对象。
+  # 当get查询的数据为空或者多条时，会抛出异常。
+  one_project = Projects.objects.get(id=8)
+  # 方式二：使用manager对象的filter()方法，返回一个QuerySet对象。
+  # 当filter查询的数据为空，返回空的QuerySet对象
+  # 当filter查询的数据多条时，返回的结果也会在QuerySet对象中
+  one_project = Projects.objects.filter(id=8)
+  ```
+
+- 查询表中所有数据：all()方法
+
+  ```python
+  # 返回一个QuerySet查询集对象
+  # QuerySet特性：
+  # 	1.惰性查找：需要用到数据时才执行sql语句
+  #	2.类似列表，支持for循环迭代、切片、索引取值（不支持负索引）
+  all_projects = Projects.objects.all()
+  ```
+
+  
+
+##### 3、更新数据
+
+```python
+# 获取待修改的数据取出（查询集对象），调用update()方法更新数据
+Projects.objects.filter(id=5).update(leader='小红')
+```
+
+##### 4、删除数据
+
+
+
 - 方式二：使用模型类manager对象（模型类.objects）的**create()**方法
 
 ```python
 Projects.objects.create(name='某某某金融项目', leader='小明', dess='描述')
-```
-
-- 添加子表数据
-
-```python
-one_project = Projects.objects.create(name='某某某金融项目', leader='小明', dess='描述')
-# 方式一：通过从表生成的字段(projects_id)关联父表中的数据
-Interface.objects.create(name='登录接口', tester='anny', projects_id=one_project.id)
-
-# 方式二：通过从表的类属性(projects)关联父表的实例(one_project)
-Interfaces.objects.create(name='登录接口', tester='jack', projects=one_project)
-# 注：从表外键字段常命名为父表类名小写
 ```
 
 ### 2、r（retrieve）：读取数据
@@ -115,22 +193,6 @@ Interfaces.objects.create(name='登录接口', tester='jack', projects=one_proje
   > ​	qs[0].projects	
   >
   > 注：若是有三张以上的表关联，可使用‘`关联模型类1小写__ 关联模型类1外键名__关联模型类2字段名__查询类型=具体指`’
-
-### 3、u（update）：更新数据
-
-- 方式一：获取模型类对象，重新赋值，调用save()提交修改
-
-```python
-one_project = Projects.objects.get(id=4)
-one_project.name = 'xiaolin'
-one_project.save()
-```
-
-- 方式二：manager对象的update()方法
-
-```python
-Projects.objects.filter(id=4).update(leader='安妮')
-```
 
 ### 4、d（delete）：删除数据
 

@@ -117,37 +117,52 @@ class Projects(models.Model):
     def __str__(self):
     	return self.name
     
-    # 在模型类中定义一个Meta内部类修改当前表的元信息
     class Meta:
+        # 在模型类中定义一个Meta内部类修改当前表的元信息
         db_table = 'tb_project'	# 指定创建的数据表名称
         verbose_name = '项目表'	# 指定创建的数据表中文描述信息
         verbose_name_plural = '项目表'
 ```
 
-##### 7、表与表关联：模型类使用**ForeignKey**关联
+##### 7、使用**ForeignKey**关联表
 
->表与表之间的关联关系：一对多（ForeignKey）、一对一（OneToOneField）、多对多（ManyToManyField）
->
->模型类中添加外键，一般在‘多’的那侧添加外键，一对一时候任何一方均可添加外键，外键字段名推荐使用关联模型类小写命名。
+- 表与表之间的关联关系
+  1. 一对多(ForeignKey)：Projects表与Interfaces表
+  2. 一对一(OneToOneField)：人和身份证
+  3. 多对多(ManyToManyField)：学生表和课程表
 
 ```python
 # 接口表
+from django.db import models
+from projects.models import Projects
+
 class Interfaces(models.Model):
     id = models.AutoField(primary_key=True, verbose_name='id主键', help_text='id主键')
-    name = models.CharField(max_length=15, verbose_name='接口名称', help_text='接口名称', unique=True)
+    name = models.CharField(max_length=15, unique=True, verbose_name='接口名称', help_text='接口名称')
     tester = models.CharField(max_length=10, verbose_name='测试人员', help_text='测试人员')
-    '''
-    ForeignKey两个位置参数：
-    	1、关联的表(to)：a.可采用导入关联类，直接写关联的类；b.字符串指定‘子应用名_父类模型类’
-    	2、指定关联表删除时的处理方式(on_delete)：级联删除策略
-    		CASCADE：当父表数据删除时，对应从表数据会自动删除
-    		SET_NULL：当父表数据删除之后，对应从表的外键字段会被自动设置为NULL
-    		PROTECT：当父表数据删除时，如果存在对应的从表数据，会抛出异常
-    		SET_DEAFAULT：当父表数据删除之后，对应的从表数据的外键会被自动设置为default参数指定的值
-    '''
-    # 创建数据表时，会自动生成projects_id作为字段名存放外键值
-    projects = models.ForeignKey('pools.Projects', on_delete=models.CASCADE)
+    # 1.关联字段一般取名为父类名小写
+    # 2.使用ForeignKey在从表中指定外键字段
+    # 3.ForeignKey需要两个位置参数
+    #	- 第一个位置参数，关联的父表：
+    #		第一种写法：子类模型类中导入父类模型类，直接写父类模型类
+    #		第二种写法：使用字符串表示，"应用名.父类模型类"。如"projects.Projects"
+    #	- 第二个位置参数：级联删除策略
+    #		on_delete=models.CASCADE：父表数据删除时，对应子表数据会自动删除
+    #		on_delete=models.SET_NULL：父表数据删除时，对应子表数据设置为null
+    #		on_delete=models.PROTECT：父表数据删除时，如果存在对应的从表数据，会抛出异常
+    #		on_delete=models.SET_DEFAULT, default=''：父表数据删除时，对应子表数据设置为默认值
+    # 创建数据表时，会自动创建projects_id的字段，用于存放父表外键只
+    projects = models.ForeignKey(Projects, on_delete=models.CASCADE)
+    
+    class Meta:
+        db_table = 'tb_interfaces'
+        verbose_name = '接口表'
+        verbose_name_plural = '接口表'
 ```
+
+
+
+
 
 - 抽象模型类：多张表字段相同时，可抽取出来形成抽象模型类
 
@@ -165,4 +180,4 @@ class Interfaces(models.Model):
 
   
 
-# 46
+# 47
