@@ -160,24 +160,18 @@ class Interfaces(models.Model):
         verbose_name_plural = '接口表'
 ```
 
+##### 8、抽象模型类
 
+> 当多张表有相同字段，可以把相同字段抽离出来形成抽象模型类。需要使用到公共字段的模型类继承抽象模型类即可。
 
+```python
+# 项目下创建公共资源包utils/base_models.py
+class BaseModel(models.Model):
+    id = models.AutoField(primary_key=True, verbose_name='id主键', help_text='id主键')
+    create_time = models.DateTimeField(auto_now_add=True, verbose_name='创建时间', help_text='创建时间')
+    update_time = models.DateTimeField(auto_now=True, verbose_name='更新时间', help_text='更新时间')
+    class Meta：
+    	# abstract指定当前模型类为抽象模型类
+    	abstract = True	
+```
 
-
-- 抽象模型类：多张表字段相同时，可抽取出来形成抽象模型类
-
-  ```python
-  # 项目下创建公共资源包utils/base_models.py
-  class BaseModel(models.Model):
-      id = models.AutoField(primary_key=True, verbose_name='id主键', help_text='id主键')
-      create_time = models.DateTimeField(auto_now_add=True, verbose_name='创建时间', help_text='创建时间')
-      update_time = models.DateTimeField(auto_now=True, verbose_name='更新时间', help_text='更新时间')
-      class Meta：
-      	# abstract指定当前模型类为抽象模型类
-          # 因为某些模型类，仅仅是将多个模型类中的公共的字段抽离出来，而不需要生成表,需要用到该模型类的字段继承模型类即可
-      	abstract = True	
-  ```
-
-  
-
-# 47
