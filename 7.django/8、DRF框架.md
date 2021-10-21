@@ -2,22 +2,43 @@
 
 #### 一、REST API
 
--  是Representational State Transfer 的缩写
+- 是REpresentational State Transfer 的缩写
+
 - 是一种开发理念，是设计风格而不是标准
+
 - 每一个URL代表一种资源
+
 - 客户端和服务端之间，传递资源的某种表现形式
   - 通过请求头中Content-Type来指明传给服务端的参数类型
+  
+    ```python
+    "text/plain","application/json
+    ```
+  
   - 通过请求头中Accept来指明希望接收服务端的数据类型
+  
+    ```python
+    Accept: application/json
+    ```
+  
 - 客户端通过HTTP动词，指明对服务器端资源进行的操作
+
+  | HTTP METHOD | CURD                  |
+  | ----------- | --------------------- |
+  | POST        | Create                |
+  | GET         | Read                  |
+  | PUT         | Update/Replace        |
+  | PATCH       | Partial Update/Modify |
+  | DELETE      | Delete                |
 
 #### 二、REST常用的设计原则
 
-- 命名
+- URL命名
 
   - 尽量使用名词复数形式
   - 往往和数据库的表名对应
 
-- 过滤条件
+- 过滤条件，使用分页、查询、排序一律使用查询字符串参数
 
   > ?limit=10					：指定返回记录的数量	
   >
@@ -63,8 +84,10 @@
   403 Forbidden - [*]：用户得到授权，但是访问是被禁止的
   404 NOT FOUND - [*]：用户请求路径不存在
   500 INTERNAL SERVER ERROR - [*]：服务器发生错误
-  
   ```
+
+- 错误处理
+  - 当请求有误时，服务器需要将错误信息以json格式数据的形式返回
 
 #### 三、Django REST framework
 
@@ -174,3 +197,5 @@
     | **error_messages** | 包含错误编号与错误信息的字典                                 |
     | **label**          | 用于HTML展示API页面时，显示的字段名称                        |
     | **help_text**      | 用于HTML展示API页面时，显示的字段帮助提示信息                |
+
+49
