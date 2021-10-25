@@ -94,6 +94,7 @@
 ##### 1、简介
 
 - 在Django框架基础之上进行的二次开发
+- 用于构建Restful API
 
 ##### 2、特性
 
@@ -116,6 +117,7 @@
 - 配置
 
   ```python
+  # setting.py
   INSTALLED_APPS = [
       'rest_framework',]
   ```
@@ -126,6 +128,94 @@
 - 数据转化
   - 序列化：将对象转化成数据
   - 反序列化：将数据转化成对象
+
+##### 5、序列化器的定义及使用
+
+- 定义序列化器：在需要使用的子应用目录下创建序列化器，序列化器常命名为serializers.py
+
+  ```python
+  # projects/serializers.py
+  from rest_framework import serializers	# 导入DRF的序列化器组件
+  
+  # 创建一个类继承Serializer或其子类来定义一个序列化器
+  class ProjectSerializer(serializers.Serializer):
+      # 哪些字段需要校验及序列化操作，就定义哪些字段。字段名、类型和模型类的字段一致
+      name = serializers.CharField()
+      leader = serializers.CharField()
+  ```
+
+- 序列化器的使用
+
+  ```python
+  # projects/views.py
+  from projects.models import Projects	# 模型类
+  from projects.serializers import ProjectSerializer	# 导入创建的序列化器类
+  
+  class ProjectsView(View):
+      def get(self, request):
+          qs = Projects.objects.all()
+          # instance参数接受查询集或模型类对象，当数据为模型类对象时many=False
+          serializer = ProjectSerializer(instance=qs, many=True)
+          # serializer.data获取序列化器中的数据，一般为字典或嵌套字典的列表
+          return JsonResponse(serializer.data, safe=False, json_dumps_params={"ensure_ascii": False})
+  ```
+
+##### 6、序列化
+
+- 选项参数
+
+  | 参数名称            | 作用             |
+  | ------------------- | ---------------- |
+  | **max_length**      | 最大长度         |
+  | **min_length**      | 最小长度         |
+  | **allow_blank**     | 是否允许为空     |
+  | **trim_whitespace** | 是否截断空白字符 |
+  | **max_value**       | 最大值           |
+  | **min_value**       | 最小值           |
+
+- 通用参数
+
+  | 参数名称            | 说明                                      |
+  | ------------------- | ----------------------------------------- |
+  | **read_only**       | 表明该字段仅用于序列化输出，默认为False   |
+  | **write_only**      | 表明该字段仅用于反序列化输出，默认为False |
+  | **required**        | 表明该字段在反序列化时必须输入，默认True  |
+  | **default**         | 反序列化时使用的默认值                    |
+  | **allow_null**      | 表明该字段是否允许传入None，默认为False   |
+  | **validators**      | 该字段使用的验证器                        |
+  | **errors_messages** | 包含错误编码与错误信息的字典              |
+  | **lable**           | 用于HTML展示API页面时，显示的字段名称     |
+  | **help_text**       | 后台站点显示字段的名称                    |
+
+- 使用
+
+  ```python
+  # serializers.py
+  from rest_framework import serializers
+  
+  class ProjectSerializer(serializers.Serializer):
+      id = serializers.IntegerField()
+      name = serializers.CharField(label='项目名称', help_text='项目名称', max_length=10, min_length=3)
+      leader = serializers.CharField()
+  ```
+
+  ```python
+  # views.py
+  class ProjectsView(View):
+      def post(self, request):
+          json_str = request.body.decode('utf-8')
+          python_data = json.loads(json_str)
+  		# 定义个序列化器，把数据传递给序列化器的data参数
+          serializer = ProjectSerializer(data=python_data)
+          # 数据校验，使用is_valid()判断校验是否成功，serializer.errors获取校验失败后的信息
+          if not serializer.is_valid():
+              err = serializer.errors
+              return JsonResponse(err, json_dumps_params={"ensure_ascii": False})
+  ```
+
+  
+
+##### 7、反序列化
 
 ##### 5、序列化、反序列化
 
@@ -180,9 +270,9 @@
     | **max_length**      | 最大长度           |
     | **min_length**      | 最小长度           |
     | **allow_blank**     | 是否允许为空字符串 |
-  | **trim_whitespace** | 是否截断空白字符   |
+    | **trim_whitespace** | 是否截断空白字符   |
     | **max_value**       | 最大值             |
-  | **min_value**       | 最小值             |
+    | **min_value**       | 最小值             |
     
   - 通过参数
   
