@@ -87,6 +87,7 @@
   ```
 
 - 错误处理
+  
   - 当请求有误时，服务器需要将错误信息以json格式数据的形式返回
 
 #### 三、Django REST framework
@@ -122,12 +123,16 @@
       'rest_framework',]
   ```
 
-##### 4、序列化器
+##### 4、序列化器的作用
 
-- 数据校验
-- 数据转化
-  - 序列化：将对象转化成数据
-  - 反序列化：将数据转化成对象
+> 1.数据转化
+>
+> - 序列化：将对象转化成数据
+> - 反序列化：将数据转化成对象
+>
+> 2.数据校验
+>
+> 3.操作数据
 
 ##### 5、序列化器的定义及使用
 
@@ -137,14 +142,16 @@
   # projects/serializers.py
   from rest_framework import serializers	# 导入DRF的序列化器组件
   
-  # 创建一个类继承Serializer或其子类来定义一个序列化器
+  # 定义个序列化器：
+  #	1.需要继承Serializer或其子类
+  #	2.定义字段进行数据校验和序列化操作，字段名和其类型与模型类的字段保持一致
+  创建一个类继承Serializer或其子类来定义一个序列化器
   class ProjectSerializer(serializers.Serializer):
-      # 哪些字段需要校验及序列化操作，就定义哪些字段。字段名、类型和模型类的字段一致
       name = serializers.CharField()
       leader = serializers.CharField()
   ```
 
-- 序列化器的使用
+- 序列化
 
   ```python
   # projects/views.py
@@ -154,138 +161,87 @@
   class ProjectsView(View):
       def get(self, request):
           qs = Projects.objects.all()
-          # instance参数接受查询集或模型类对象，当数据为模型类对象时many=False
+          # 使用序列化器进行序列化操作
+          #	1.定义一个序列化器，把模型类对象或查询集给到instance参数，且当数据为模型类对象时，参数many=False
+          #	2.使用serializer.data获取序列化器中的数据（常为字典或嵌套字典的列表）
           serializer = ProjectSerializer(instance=qs, many=True)
-          # serializer.data获取序列化器中的数据，一般为字典或嵌套字典的列表
           return JsonResponse(serializer.data, safe=False, json_dumps_params={"ensure_ascii": False})
   ```
 
-##### 6、序列化
+##### 6、数据校验
 
 - 选项参数
 
-  | 参数名称            | 作用             |
-  | ------------------- | ---------------- |
-  | **max_length**      | 最大长度         |
-  | **min_length**      | 最小长度         |
-  | **allow_blank**     | 是否允许为空     |
-  | **trim_whitespace** | 是否截断空白字符 |
-  | **max_value**       | 最大值           |
-  | **min_value**       | 最小值           |
+  | 参数名称            | 作用                      |
+  | ------------------- | ------------------------- |
+  | **max_length**      | CharField指定最大长度     |
+  | **min_length**      | CharField指定最小长度     |
+  | **allow_blank**     | CharField是否允许为空     |
+  | **trim_whitespace** | CharField是否截断空白字符 |
+  | **max_value**       | 最大值                    |
+  | **min_value**       | 最小值                    |
 
 - 通用参数
 
-  | 参数名称            | 说明                                      |
-  | ------------------- | ----------------------------------------- |
-  | **read_only**       | 表明该字段仅用于序列化输出，默认为False   |
-  | **write_only**      | 表明该字段仅用于反序列化输出，默认为False |
-  | **required**        | 表明该字段在反序列化时必须输入，默认True  |
-  | **default**         | 反序列化时使用的默认值                    |
-  | **allow_null**      | 表明该字段是否允许传入None，默认为False   |
-  | **validators**      | 该字段使用的验证器                        |
-  | **errors_messages** | 包含错误编码与错误信息的字典              |
-  | **lable**           | 用于HTML展示API页面时，显示的字段名称     |
-  | **help_text**       | 后台站点显示字段的名称                    |
+  | 参数名称            | 说明                                        |
+  | ------------------- | ------------------------------------------- |
+  | **read_only**       | 表明该字段仅用于序列化输出，默认为False     |
+  | **write_only**      | 表明该字段仅用于反序列化输入，默认为False   |
+  | **required**        | 表明该字段在反序列化时必须输入，默认True    |
+  | **default**         | 反序列化时使用的默认值                      |
+  | **allow_null**      | 表明该字段是否允许传入null，默认为False     |
+  | **allow_blank**     | 表明该字段是否允许传入空字符串，默认为False |
+  | **validators**      | 该字段使用的验证器                          |
+  | **errors_messages** | 包含错误编码与错误信息的字典                |
+  | **lable**           | 用于HTML展示API页面时，显示的字段名称       |
+  | **help_text**       | 后台站点显示字段的名称                      |
 
-- 使用
+- 序列化器校验参数
 
   ```python
   # serializers.py
   from rest_framework import serializers
   
+  # 序列化器进行数据校验：
+  #	1.序列化器类中添加参数进行校验
   class ProjectSerializer(serializers.Serializer):
       id = serializers.IntegerField()
-      name = serializers.CharField(label='项目名称', help_text='项目名称', max_length=10, min_length=3)
-      leader = serializers.CharField()
+      # 参数限定反序列化输入、序列化输出：
+      #	1.min_length、max_length：限定字符的长度
+      #	2.write_only=True：该字段必须输入，但无需序列化输出
+      #	3.read_only=True:该字段无需输入，但必须序列化输出
+      #	4.error_messages定制错误返回信息，规则的名称作为key，提示的错误信息为value
+      #	5.allow_blank=True:允许前端传null值
+      #	6.allow_null=True:允许前端传空字符串
+      #	7.required=False：该字段反序列化输入时，可以不传递
+      #	8.format='%Y-%m-%d %H:%M:%S'：格式化日期
+      name = serializers.CharField(label='项目名称', help_text='项目名称', max_length=10, min_length=3, write_only=True, error_messages={'min_length':'项目名称不能少于3位', 'max_length':'项目名称不能大于10位'})
+      leader = serializers.CharField(label='项目负责人', help_text='项目负责人')
+      is_execute = serializers.BooleanField(label='是否启动', help_text='是否启动', read_only=True)
+      desc = serializers.CharField(label='项目描述', help_text='项目描述', allow_blank=True, allow_null=True, required=False)
+      create_time = serializers.DateTimeField(label='创建时间', help_text='创建时间', required=False， format='%Y-%m-%d %H:%M:%S')
   ```
-
+	
   ```python
   # views.py
   class ProjectsView(View):
-      def post(self, request):
+      def post(self, request):	# 创建一条数据
           json_str = request.body.decode('utf-8')
           python_data = json.loads(json_str)
-  		# 定义个序列化器，把数据传递给序列化器的data参数
+  	# 序列化器对数据进行校验：
+          # 	1.定义个序列化器，给data传参
+          #	2.data必须为python中的基本类型（字典或嵌套字典的列表）
+          #	3.必须调用is_valid()才会进行数据校验，指定raise_exception=True表示校验失败自动抛出异常
+          #	4.serializer.errors获取校验失败后的信息，常为字典类型
+          #	5.serializer.validated_data获取校验通过的数据
           serializer = ProjectSerializer(data=python_data)
-          # 数据校验，使用is_valid()判断校验是否成功，serializer.errors获取校验失败后的信息
           if not serializer.is_valid():
               err = serializer.errors
               return JsonResponse(err, json_dumps_params={"ensure_ascii": False})
-  ```
-
-  
-
-##### 7、反序列化
-
-##### 5、序列化、反序列化
-
-- 定义序列化器
-
-  ```python
-  # 子应用中新建serializers.py定义序列化器
-  from rest_framework import serializers
-  '''
-  1、序列化器需要是继承serializers.Serializer或期子类
-  2、通过不同Field类定义不同的字段，且字段名需和对应使用的模型类一致'''
-  class ProjectSerializer(serializers.Serializer):
-      name = serializers.CharField(label='项目名称', help_text='项目名称', max_length=10, min_length=3, error_messages={'min_length': '项目名称长度不能少于3位', 'max_length': "项目名称长度不能大于10位"})
-      leader = serializers.CharField(label='项目负责人', help_text='项目负责人')
-      is_excute = serializers.BooleanField(label='是否启动项目', help_text='是否启动项目', read_only=True)
-      # allow_null=True指定字段可以传入null，allow_blank指定字段可以传入空字符串
-      desc = serializers.CharField(label='项目描述', help_text='项目描述', allow_null=True, allow_blank=True)
-      # 格式化使用format参数
-      create_time = serializers.DateTimeField(label='创建时间', help_text='创建时间', format='%Y-%m-%d %H:%M:%S')
-      
-  # 使用序列化器，view.py
-  from . import serializers
-  
-  class ProjectViews(View):	# 类视图
-      def get(self, request):	# 获取项目的所有数据的接口
-          data = Project.objects.all()
-          # 将获取的查询集或模型类对象传递给序列化器instance参数，数据为查询集时需指定参数many=True
-          serialize = serializers.ProjectSerializer(instance=data, many=True)
-          # serialize.data获取对象的数据，一般为字典或嵌套字典
-          return JsonResponse(data=serialize.data, safe=False, json_dumps_params={"ensure_ascii": False})
-      
-      def post(self, request):	#创建一个项目的接口
-          json_str = request.body.decode('utf-8')
-          json_dict = json.loads(json_str)
-          # 对数据校验时，在定义序列化器需要指定一些参数，如：max_length、min_length。将前端传来的数据传来序列化器data参数。
-          serializer = serializers.ProjectSerializer(data=json_dict)
-          # 通过序列化器的is_valid()方法校验参数，校验通过返回True。指定参数raise_exception=True校验不通过会抛出异常
-          if not serializer.is_valid(raise_exception=True):
-              # 校验不通过的错误信息存放在序列化器的errors属性中
-              return JsonResponse(data=serializer.errors, json_dumps_params={"ensure_ascii": False})
-          # 校验通过的数据：serializer.validated_data
-          obj = Project(**serializer.validated_data)
-        obj.save()
-          serializer = serializers.ProjectSerializer(instance=obj)
-        return JsonResponse(data=serializer.data, json_dumps_params={"ensure_ascii": False})
+          else:
+              obj = Projects(**serializer.validated_data)
+              obj.save()
+              serializer = ProjectSerializer(instance=obj)
+             return JsonResponse(serializer.data, safe=False, json_dumps_params={"ensure_ascii": False})
   ```
   
-  - 选项参数
-  
-    | 参数名称            | 说明               |
-    | ------------------- | ------------------ |
-    | **max_length**      | 最大长度           |
-    | **min_length**      | 最小长度           |
-    | **allow_blank**     | 是否允许为空字符串 |
-    | **trim_whitespace** | 是否截断空白字符   |
-    | **max_value**       | 最大值             |
-    | **min_value**       | 最小值             |
-    
-  - 通过参数
-  
-    | 参数名称           | 说明                                                         |
-    | ------------------ | ------------------------------------------------------------ |
-    | **read_only**      | 表明该字段仅用于序列化输出，默认为False。read_only=True表示该字段不用传参 |
-    | **write_only**     | 表明该字段仅用于序列化输入，默认为False。write_only=True表示该字段序列化输出时不显示 |
-    | **required**       | 表明该字段在反序列化时必须输入，默认为True                   |
-    | **default**        | 反序列化时使用的默认值                                       |
-    | **allow_null**     | 表明该字段是否允许传入None，默认为False                      |
-    | **vaildators**     | 该字段使用的验证器                                           |
-    | **error_messages** | 包含错误编号与错误信息的字典                                 |
-    | **label**          | 用于HTML展示API页面时，显示的字段名称                        |
-    | **help_text**      | 用于HTML展示API页面时，显示的字段帮助提示信息                |
-
-49
