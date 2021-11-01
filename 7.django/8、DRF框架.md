@@ -244,4 +244,98 @@
               serializer = ProjectSerializer(instance=obj)
              return JsonResponse(serializer.data, safe=False, json_dumps_params={"ensure_ascii": False})
   ```
-  
+
+##### 7、关联字段的序列化
+
+```python
+# serializers.py 父类序列化器
+# 需求：序列化输出输出从表的信息
+from rest_framework import serializers
+from interfaces.models import Interfaces
+
+class ProjectSerializer(serializers.Serializer):
+    id = serializers.IntegerField(label='项目id', help_text='项目id')
+    name = serializers.CharField(label='项目名称', help_text='项目名称', max_length=10, min_length=3)
+    leader = serializers.CharField(label='项目负责人', help_text='项目负责人', max_length=20)
+    ie_execute = serializers.BooleanField(label='是否启动', help_text='是否启动', read_only=True)
+    des = serializers.CharField(label='项目描述', help_text='项目描述', allow_null=True, allow_blank=True)
+    create_time = serializers.DateTimeField(label='创建时间', help_text='创建时间', required=True)
+    # 父表序列化器获取从表的数据，默认使用变量名：从表模型类小写_set(interfaces_set)。也可以自定义变量名，在从表的外键字段(ForeignKey)指定related_name参数
+    # 可以指定关联字段的序列化
+    # 	- PrimaryKeyRelatedField指定的是从表的id值
+    #		- 如果序列化输出的数据多个，参数必须指定many=True
+    #		- 如果参数指定read_only=True，那么只输出从表的id
+    #		- 如果参数未指定read_only=True或required=False，那么必须指定queryset参数（指定查询集对象）
+    # 		例如：interfaces = serializers.PrimaryKeyRelatedField(label='所属接口id', help_text='所属接口id', many=True, queryset=Interfaces.objects.all())
+    #	- StringRelatedField序列化输出时，调用关联模型类__str__方法。默认指定read_only=True
+    # 		例如：interfaces = serializers.StringRelatedField(label='所属接口名称', help_text='所属接口名称', many=True)
+    #	- SlugRelatedField指定序列化时关联模型类的字段
+    #		- 如果要指定反序列化输入，slug_field必须指定唯一约束字段
+    interfaces = serializers.SlugRelatedField(label='所属接口名称', help_text='所属接口名称', many=True, read_only=True, slug_field='tester')
+```
+
+```python
+# models.py	子类模型类
+class Interfaces(BaseModel):
+    name = models.CharField(unique=True, max_length=15, verbose_name='接口名称', help_text='接口名称')
+    tester = models.CharField(max_length=10, verbose_name='测试人员', help_text='测试人员')
+    projects = models.ForeignKey(Projects, on_delete=models.CASCADE, related_name='interfaces')
+```
+
+##### 8、自定义校验规则
+
+- 字段的校验顺序
+
+  校验字段类型->通过的约束参数(max_length、min_length)->依次校验字段参数validators中的规则->序列化器类中调用单字段的校验方法(validate_字段名)->序列化器类中联合字段校验方法(validate)
+
+```python
+# serializers.py	需求：创建数据进行校验
+from rest_framework import serializers
+from rest_framework.validators import UniqueValidator	# DRF中的校验器
+from .models import Projects
+
+def is_contain_keyword(value):	# 自定义校验函数
+    # value：前端传递的数据
+    # 如果校验失败，必须返回ValidationError异常对象
+    # ValidationError中可以指定报错的信息
+    if '项目' not in value:
+        raise serializers.ValidationError('项目名称中必须包含项目')
+        
+class ProjectSerializer(serializers.Serializer):
+    id = serializers.IntegerField(label='项目id', help_text='项目id', read_only=True)
+    # 序列化器字段使用validators参数指定自定义校验器，validators必须指定序列类型
+    # 	- UniqueValidator校验器进行唯一约束的校验，必须指定queryset参数，message参数指定报错的信息
+    # 自定义校验器对字段数据进行校验，在validators序列中添加自定义校验器关键字即可
+    name = serializers.CharField(label='项目名称', help_text='项目名称', max_length=10, min_length=3,validators=[UniqueValidator(queryset=Projects.objects.all(), message='项目名称不能重复'), is_contain_keyword])
+    leader = serializers.CharField(label='项目负责人', help_text='项目负责人', max_length=20)
+    ie_execute = serializers.BooleanField(label='是否启动', help_text='是否启动', read_only=True)
+    des = serializers.CharField(label='项目描述', help_text='项目描述', allow_null=True, allow_blank=True, read_only=True)
+    create_time = serializers.DateTimeField(label='创建时间', help_text='创建时间',read_only=True)
+    
+    # 可以在序列化器类中定义对字段进行校验的方法
+    #	- 校验方法的名称：validate_字段名
+    #	- 接受的参数为前端传递的值
+    def validate_name(self, value):
+        value: str
+        if not value.endswith('项目'):
+            raise serializers.ValidationError('项目名称必须以项目结尾')
+        return value
+    
+    # validate方法对多个字段进行校验，attr为前端校验后的数据
+    # validate校验通过必须有返回值
+    def validate(self, attr):
+        name = attr.get('name')
+        leader = attr.get('leader')
+        if name == leader:
+            raise serializers.ValidationError('项目名和负责人名称不能一样')
+        return attr
+    
+    # 序列化器进行校验时，首先会调用to_internal_value进行校验
+    def to_internal_value(self, data):
+    	some_data = super().to_internal_value(data)
+        return some_data
+    
+    def to_representation(self, instance):
+        pass
+```
+
