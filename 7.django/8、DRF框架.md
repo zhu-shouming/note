@@ -247,6 +247,8 @@
 
 ##### 7、关联字段的序列化
 
+- 父表获取从表字段
+
 ```python
 # serializers.py 父类序列化器
 # 需求：序列化输出输出从表的信息
@@ -280,6 +282,31 @@ class Interfaces(BaseModel):
     name = models.CharField(unique=True, max_length=15, verbose_name='接口名称', help_text='接口名称')
     tester = models.CharField(max_length=10, verbose_name='测试人员', help_text='测试人员')
     projects = models.ForeignKey(Projects, on_delete=models.CASCADE, related_name='interfaces')
+```
+
+- 从表获取父表数据
+
+```python
+# 从表序列化器
+class OneProjectsSerializer(serializers.Serializer):
+    """"定义一个序列化器类，指定要返回的父表字段"""
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    leader = serializers.CharField()
+    is_execute = serializers.BooleanField()
+    desc = serializers.CharField()
+    create_time = serializers.DateTimeField()
+    update_time = serializers.DateTimeField()
+    
+class InterfaceSerializer(serializers.Serializer):
+    id = serializers.IntegerField(label='id主键', help_text='id主键', required=False)
+    name = serializers.CharField(label='接口名称', help_text='接口名称', max_length=15,
+                                 error_messages={'max_length': 'name不能超过15字'})
+    tester = serializers.CharField(label='测试人员', help_text='测试人员', max_length=10,
+                                   error_messages={'max_length': 'tester不能超过15字'})
+    create_time = serializers.DateTimeField(label='创建时间', help_text='创建时间', required=False, read_only=True)
+    update_time = serializers.DateTimeField(label='更新时间', help_text='更新时间', required=False, read_only=True)
+    projects = OneProjectsSerializer(label='获取父表projects所有信息', help_text='获取父表projects所有信息', read_only=True)
 ```
 
 ##### 8、自定义校验规则
@@ -337,5 +364,82 @@ class ProjectSerializer(serializers.Serializer):
     
     def to_representation(self, instance):
         pass
+```
+
+##### 9、DRF数据保存、更新
+
+```python
+# serializers.py 序列化器
+from rest_framework import serializers
+from projects.models import Projects	# 模型类
+
+class ProjectSerializer(serializers.Serializer):
+    """省去模型类定义字段"""
+    token = serializers.CharField(read_only=True)	# 添加序列化输出的数据
+    
+    def create(self, validated_data):
+        # validated_data：校验通过后的数据
+        # 必须将创建的模型类对象返回
+        # 也可以添加自定义返回数据（token），前提序列化器中必须有定义
+        obj = Projects.objects.create(**validated_data)
+        obj.token = 'xxx-xxx-xxx-xxx-xxx'
+        return obj
+    
+    def update(self, instance, validated_data):
+        # validated_data：校验通过后的数据
+        # instance：待更新的模型类对象
+        # 必须将创建的模型类对象返回
+        instance.name = instance.get('name') or instance.name
+        instance.leader = instance.get('leader') or instance.leader
+        instance.is_execute = instance.get('is_execute') or instance.is_execute
+        instance.desc = instance.get('desc') or instance.desc
+        instance.save()
+        return instance
+```
+
+```python
+# View.py
+# 解决痛点：反序列化需要把数据传给序列化器data参数，序列化时传给instance参数
+# 序列化器对象调用save()方法，会进行数据创建和更新操作
+#	- 当创建数据时，只给序列化器data传参，使用序列化器的save()方法会自动调用序列化器的create()方法
+#	- 当更新数据时，给序列化器instance和data同时传参，使用序列化器的save()方法会自动调用序列化器的update()方法
+#	- 序列化器save()方法可以传关键字参数，可在create或update方法validated_data中获取
+
+class ProjectsView(View):
+    def post(self, request):
+        err_msg = {
+            'status': False,
+            'msg': '参数有误',
+            'num': 0
+        }
+        try:
+            json_data = request.body.decode('utf-8')
+            python_data = json.loads(json_data)
+        except Exception:
+            return JsonResponse(err_msg, json_dumps_params={'ensure_ascii': False}, status=400)
+        serializer = ProjectSerializer(data=python_data)
+        if not serializer.is_valid():
+            return JsonResponse(serializer.errors, json_dumps_params={"ensure_ascii": False})
+        serializer.save()
+        return JsonResponse(serializer.data, json_dumps_params={"ensure_ascii": False})
+    
+class ProjectViewDetail(View):
+    def put(self, request, pk):
+        error_msg = {
+            'status': False,
+            'msg': '参数有误',
+            'num': 0
+        }
+        try:
+            json_data = request.body.decode('utf-8')
+            python_data = json.loads(json_data)
+            obj = Projects.objects.get(id__exact=pk)
+        except Exception:
+            return JsonResponse(error_msg, json_dumps_params={'ensure_ascii': False}, status=400)
+        serializer = ProjectSerializer(instance=obj, data=python_data)
+        if not serializer.is_valid():
+            return JsonResponse(serializer.errors, json_dumps_params={"ensure_ascii": False})
+        serializer.save()
+        return JsonResponse(serializer.data, json_dumps_params={"ensure_ascii": False}, status=200)
 ```
 
