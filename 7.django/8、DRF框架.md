@@ -389,10 +389,10 @@ class ProjectSerializer(serializers.Serializer):
         # validated_data：校验通过后的数据
         # instance：待更新的模型类对象
         # 必须将创建的模型类对象返回
-        instance.name = instance.get('name') or instance.name
-        instance.leader = instance.get('leader') or instance.leader
-        instance.is_execute = instance.get('is_execute') or instance.is_execute
-        instance.desc = instance.get('desc') or instance.desc
+        instance.name = validated_data.get('name') or instance.name
+        instance.leader = validated_data.get('leader') or instance.leader
+        instance.is_execute = validated_data.get('is_execute') or instance.is_execute
+        instance.desc = validated_data.get('desc') or instance.desc
         instance.save()
         return instance
 ```
