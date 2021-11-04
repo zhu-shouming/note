@@ -389,10 +389,10 @@ class ProjectSerializer(serializers.Serializer):
         # validated_data：校验通过后的数据
         # instance：待更新的模型类对象
         # 必须将创建的模型类对象返回
-        instance.name = validated_data.get('name') or instance.name
-        instance.leader = validated_data.get('leader') or instance.leader
-        instance.is_execute = validated_data.get('is_execute') or instance.is_execute
-        instance.desc = validated_data.get('desc') or instance.desc
+        instance.name = instance.get('name') or instance.name
+        instance.leader = instance.get('leader') or instance.leader
+        instance.is_execute = instance.get('is_execute') or instance.is_execute
+        instance.desc = instance.get('desc') or instance.desc
         instance.save()
         return instance
 ```
@@ -443,3 +443,41 @@ class ProjectViewDetail(View):
         return JsonResponse(serializer.data, json_dumps_params={"ensure_ascii": False}, status=200)
 ```
 
+##### 10、ModelSerializer
+
+- 简化序列化器的定义
+  - 基于模型类自动生成一系列字段
+  - 基于模型类自动为Serializer生成validators
+  - 包含默认的create和update的实现
+
+```python
+# serializers.py	
+# 自定生成序列化器类
+#	- 继承ModelSerializer根据指定的模型类(model=Projects)生成序列化器中的字段
+#	- 已实现create、update方法
+#	- fields指定模型类需要进行序列化的字段，__all__表示所有字段
+#	- exclude指定模型类不需要序列化的字段
+#	- read_only_fields指定添加read_only=True的字段
+# 可以重新定义模型类中字段，会覆盖自动生成同名字段
+# 也可以在Meta内部类中使用extra_kwargs修改字段的约束
+# 如果指定了模型类没有定义的字段，需要在fields中指定。或指定fields = '__all__'和exclude则不用考虑
+class ProjectsModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Projects
+        # fields = '__all__'
+        fields= （'name', 'leader'）
+        exclude = ('create_time',)
+        read_only_fields = ('id', 'is_execute', 'desc')
+        extra_kwargs = {
+            'name': {
+                'label': '项目名称'
+            }
+        }
+
+    def create(self, validated_data):
+        '''重写定义好的create'''
+        pass
+
+    def update(self, instance, validated_data):
+        '''重写定义好的update'''
+```
