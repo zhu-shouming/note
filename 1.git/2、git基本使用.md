@@ -46,13 +46,13 @@
 >
 > 分支合并：
 >
-> ​	1、创建分支工作：git checkout -b zsm
->
-> ​	2、切换到主分支：git checkout main
->
-> ​	4、合并修补程序：git merge zsm
->
-> ​	5、删除分支：git branch -d zsm
+> 	1、创建分支工作：git checkout -b zsm
+> 	
+> 	2、切换到主分支：git checkout main
+> 	
+> 	4、合并修补程序：git merge zsm
+> 	
+> 	5、删除分支：git branch -d zsm
 
 ##### 问题
 
@@ -76,4 +76,9 @@
   199.232.69.194 github.global.ssl.fastly.net
   ```
 
-  
+##### 2.gitignore添加忽略文件不生效
+
+> 改文件已经commit，在缓存中存在
+>
+> 解决办法：git rm -r -cache 文件名
+
