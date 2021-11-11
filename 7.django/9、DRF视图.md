@@ -70,7 +70,7 @@ class ProjectsView(APIView):
 #### 二、GenericAPIView
 
 - 是APIView子类，支持APIView的所有功能
-- 支持过了、排序、分页功能
+- 支持过过滤、排序、分页功能
 
 ```python
 from rest_framework.generics import GenericAPIView
@@ -84,15 +84,49 @@ class ProjectsView(GenericAPIView):
     3.lookup_field类属性用于指定传递主键参数时，接收的url路径参数名，默认为pk
     4.父类有提供self.get_object()获取模型对象
     '''
-    queryset = Projects.objects.all()
+    query_set = Projects.objects.all()
     serializer_class = ProjectSerializer
 
     def get(self, request: Request):
         name = request.query_params.get('name')
         if name:
-            queryset = self.get_queryset().filter(name__exact=request.query_params.get('name'))
+            queryset = self.get_queryset().filter(name__exact=name)
         serializer = self.get_serializer(instance=queryset, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 ```
+
+##### 1、过滤功能
+
+> GenericAPIView支持过滤功能，底层BaseFilterBackend类为过滤基类，通过SearchFilter和OrderingFilter实现搜索和排序过滤
+
+- 搜索过滤
+
+  ```python
+  # setting.py
+  # 1.全局配置指定搜索引擎
+  # 默认搜索使用的key值为：search，可在全局配置中修改key值
+  REST_FRAMEWORK = {
+      'DEFAULT_FILTER_BACKENDS': ['rest_framework.filters.SearchFilter'],
+      'SEARCH_PARAM': 'name',
+  }
+  
+  # view.py
+  # 2.通过search_fields指定要搜索的字段
+  # 3.使用父类的filter_queryset()方法获取查询集对象
+  class ProjectsView(GenericAPIView):
+      queryset = ProjectModel.objects.all()
+      serializer_class = ProjectSerializer
+      search_fields = ['name']
+      
+      def get(self, request: Request):
+          queryset = self.filter_queryset(self.get_queryset())
+          serializer = ProjectSerializer(instance=queryset, many=True)
+  ```
+
+  
+
+
+
+
 
 53
