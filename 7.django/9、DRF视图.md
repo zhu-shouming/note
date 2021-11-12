@@ -103,8 +103,8 @@ class ProjectsView(GenericAPIView):
 
   ```python
   # setting.py
-  # 1.全局配置指定搜索引擎
-  # 默认搜索使用的key值为：search，可在全局配置中修改key值
+  # 1.全局配置指定搜索引擎，只要视图继承GenericAPIView过滤全局有效；也可以在类视图指定过滤引擎，当前视图支持过滤引擎。
+  # 默认搜索使用的key值为：search，可在全局配置中修改key值。
   REST_FRAMEWORK = {
       'DEFAULT_FILTER_BACKENDS': ['rest_framework.filters.SearchFilter'],
       'SEARCH_PARAM': 'name',
@@ -112,21 +112,125 @@ class ProjectsView(GenericAPIView):
   
   # view.py
   # 2.通过search_fields指定要搜索的字段
-  # 3.使用父类的filter_queryset()方法获取查询集对象
+  # 3.必须使用父类的filter_queryset(查询集对象)继续进行过滤
+  # 默认使用的是包含（icontains）匹配
+  from rest_framework.generics import GenericAPIView
+  from rest_framework.filters import SearchFilter
+  
   class ProjectsView(GenericAPIView):
       queryset = ProjectModel.objects.all()
       serializer_class = ProjectSerializer
-      search_fields = ['name']
+      search_fields = ['=name']	# =表示精确匹配，^表示以什么开头匹配
+      filter_backends = [SearchFilter]	# 指定过滤引擎
       
       def get(self, request: Request):
           queryset = self.filter_queryset(self.get_queryset())
-          serializer = ProjectSerializer(instance=queryset, many=True)
+          serializer = self.get_serializer(instance=queryset, many=True)
+          return Response(data=serializer.data, status=status.HTTP_200_OK)
   ```
 
+- 排序过滤
+
+  ```python
+  # 1.指定过滤引擎OrderingFilter，同SearchFilter配置一样
+  # 2.指定要排序的字段，如ordering_fields = ['id', 'name', 'create_time']
+  # 3.必须使用父类的filter_queryset(查询集对象)继续进行过滤
+  # 前端可以指定多个排序字段，每个排序字段用逗号隔开。如：?ordering=-id,name
+  from rest_framework.generics import GenericAPIView
+  from rest_framework.filters import OrderingFilter
   
+  class ProjectsView(GenericAPIView):
+      queryset = ProjectModel.objects.all()
+      serializer_class = ProjectSerializer
+      ordering_fields = ['id', 'name', 'create_time']
+      filter_backends = [OrderingFilter]
+      
+      def get(self, request: Request):
+          queryset = self.filter_queryset(self.get_queryset())
+          serializer = self.get_serializer(instance=queryset, many=True)
+          return Response(data=serializer.data, status=status.HTTP_200_OK)
+  ```
 
+##### 2、分页功能
 
+```python
+# 1.使用DEFAULT_PAGINATION_CLASS指定分页引擎，或视图中pagination_clas指定引擎
+# 2.指定PAGE_SIZE分页的数据条数
+# 3.必须调用paginate_queryset(查询集对象)方法
+# 4.paginate_queryset(查询集对象)返回的对象传给序列化器
+# 5.最终必须返回get_paginated_response(序列化后的数据)方法
+# 也可以对PageNumberPagination进行重写，定义新功能
+from rest_framework.generics import GenericAPIView
+from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.pagination import PageNumberPagination
 
+class ProjectsView(GenericAPIView):
+    queryset = ProjectModel.objects.all()
+    serializer_class = ProjectSerializer
+    search_fields = ['=name']
+    ordering_fields = ['id', 'name', 'create_time']
+    filter_backends = [SearchFilter, OrderingFilter]
+    pagination_class = PageNumberPagination
 
+    def get(self, request: Request):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(instance=page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(instance=queryset, many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+```
 
-53
+##### 3、Mixin扩展类
+
+```python
+from projects.models import ProjectModel	# 模型类
+from projects.serializers import ProjectSerializer	# 序列化器
+from rest_framework.generics import GenericAPIView	# 视图
+from rest_framework.filters import SearchFilter, OrderingFilter	# 过滤引擎
+from rest_framework.pagination import PageNumberPagination	# 分页引擎
+from rest_framework import mixins	# 扩展类
+
+class ProjectsView(mixins.ListModelMixin, mixins.CreateModelMixin, GenericAPIView):
+    queryset = ProjectModel.objects.all()
+    serializer_class = ProjectSerializer
+    search_fields = ['=name']
+    ordering_fields = ['id', 'name', 'create_time']
+    filter_backends = [SearchFilter, OrderingFilter]
+    pagination_class = PageNumberPagination
+
+    def get(self, request: Request):
+        return self.list(request)
+
+    def post(self, request):
+        return self.create(request)
+
+class ProjectsViewDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, GenericAPIView):
+    queryset = ProjectModel.objects.all()
+    serializer_class = ProjectSerializer
+
+    def get(self, request, pk):
+        return self.retrieve(request)
+
+    def put(self, request, pk):
+        return self.update(request)
+
+    def delete(self, request, pk):
+        return self.destroy(request)
+```
+
+##### 4、GenericAPIView属性和方法
+
+- 属性
+  - queryset：定义类视图的类属性，指定当前类视图用到的查询集对象
+  - serializer_class：指定当前类视图要使用的序列化器对象
+- 方法
+  - get_queryset()：获取的就是queryset查询集对象
+  - get_object()：获取一个模型类对象，默认使用pk为路径名称
+  - get_serializer()：获取的就是serializer_class序列化器类
+  - get_serializer_class()：获取序列化器名称
+  - filter_queryset()：实现过滤功能调用
+  - paginate_queryset()：实现分页功能调用
+  - get_paginated_response()：获取分页返回结果
+
