@@ -234,3 +234,174 @@ class ProjectsViewDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mix
   - paginate_queryset()：实现分页功能调用
   - get_paginated_response()：获取分页返回结果
 
+##### 5、Concrete Generic Views
+
+- RetrieveAPIView
+  - 提供get方法
+  - 继承：RetrieveModelMixin、GenericAPIView
+- UpdateAPIView
+  - 提供put和patch()方法
+  - 继承：UpdateModelMixin、GenericAPIView
+- DestroyAPIView
+  - 提供delete
+  - 继承：DestroyModelMixin、GenericAPIView
+- ListAPIView
+  - 提供get方法
+  - 继承：ListModelMixin、GenericAPIView
+- CreateAPIView
+  - 提供post方法
+  - 继承：CreateModeMixin、GenericAPIView
+- ListCreateAPIView
+  - 提供post、get方法
+  - 继承：ListModelMixin、CreateModelMixin、GenericAPIView
+- RetrieveUpdateAPIView
+  - 提供get、put、patch方法
+  - 继承：RetrieveModelMixin、UpdateModelMixin、GenericAPIView
+
+```python
+# model.py
+from django.db import models
+
+class ProjectModel(models.Model):
+    name = models.CharField(verbose_name='项目名称', help_text='项目名称', max_length=20, unique=True)
+    des = models.TextField(verbose_name='项目描述', help_text='项目描述', null=True)
+    create_time = models.DateTimeField(verbose_name='创建时间', help_text='创建时间', auto_now_add=True)
+    update_time = models.DateTimeField(verbose_name='更新时间', help_text='更新时间', auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'tb_project'
+        verbose_name = '项目表'
+        verbose_name_plural = '项目表'
+
+# serializers.py
+from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
+from projects.models import ProjectModel
+
+class ProjectSerializer(serializers.ModelSerializer):
+    interface = serializers.StringRelatedField(read_only=True, many=True)	# 自定义关联从表信息
+
+    class Meta:
+        model = ProjectModel
+        fields = '__all__'
+        extra_kwargs = {
+            'name': {
+                'label': '项目名称',
+                'help_text': '项目名称',
+                'max_length': 10,
+                'min_length': 3,
+                'error_messages': {'max_length': '字符长度必须小于10位', 'min_length': '字符长度必须大于3位'},
+                'validators': [UniqueValidator(ProjectModel.objects.all(), message='项目名称已重复')]
+            },
+            'des': {
+                'allow_blank': True,
+                'allow_null': True
+            }
+        }
+```
+
+```python
+# view.py
+from projects.models import ProjectModel
+from rest_framework import generics
+from projects.serializers import ProjectSerializer
+from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.pagination import PageNumberPagination
+
+class ProjectsView(generics.ListCreateAPIView):
+    queryset = ProjectModel.objects.all()
+    serializer_class = ProjectSerializer
+    search_fields = ['=name']
+    ordering_fields = ['id', 'name', 'create_time']
+    filter_backends = [SearchFilter, OrderingFilter]
+    pagination_class = PageNumberPagination
+
+class ProjectsViewDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = ProjectModel.objects.all()
+    serializer_class = ProjectSerializer
+```
+
+#### 三、viewsets
+
+- 使请求方法和动作进行映射
+
+| 请求方法 | 动作           | 描述                 |
+| -------- | -------------- | -------------------- |
+| GET      | retrieve       | 获取详情数据（单条） |
+| GET      | list           | 获取列表数据（多条） |
+| POST     | create         | 创建数据             |
+| PUT      | update         | 更新数据             |
+| PATCH    | partial_update | 部分更新             |
+| DELETE   | destroy        | 删除数据             |
+
+##### ViewSet类
+
+- 继承ViewSetMixin和views.APIView
+  - ViewSetMixin支持action动作
+- 未提供get_object()、get_serializer()、queryset、serializer_class等
+
+##### GenericViewSet类
+
+- 继承ViewSetMixin和GenericAPIView
+  - get_object()、get_serializer()、queryset、serializer_class等
+- 在定义路由时，需要将请求方法与action动作进行绑定
+
+##### ModelViewSet类
+
+- 继承CreateModelMixin、RetrieveModelMixin、UpdateModelMixin、DestroyModelMixin、ListModelMixin、GenericViewSet
+
+##### ReadOnlyModelViewSet类
+
+- 继承RetrieveModelMixin、ListModelMixin、GenericViewSet
+
+```python
+# urls.py
+from django.urls import path
+from projects import views
+
+# 继承了ViewSet类视图，在路由中支持请求方法和action一一对应的功能
+# 在as_view()方法中传入字典
+urlpatterns = [
+    path('', views.ProjectsViewSet.as_view({
+        'get': 'list',
+        'post': 'create'
+    })),
+    path('<int:pk>/', views.ProjectsViewSet.as_view({
+        'get': 'retrieve',
+        'put': 'update',
+        'patch': 'partial_update',
+        'delete': 'destroy'
+    })),
+]
+```
+
+```python
+# view.py
+from rest_framework import viewsets
+from rest_framework import mixins
+
+# 继承mixins扩展类使用action方法
+class ProjectsViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
+                      mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
+                      mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    queryset = ProjectModel.objects.all()
+    serializer_class = ProjectSerializer
+    search_fields = ['=name']
+    ordering_fields = ['id', 'name', 'create_time']
+    filter_backends = [SearchFilter, OrderingFilter]
+    pagination_class = PageNumberPagination
+```
+
+- viewsets封装了GenericViewSet、ReadOnlyModelViewSet、ModelViewSet
+
+  ```python
+  # 上面类继承的代码可以优化
+  class ProjectsViewSet(viewsets.ModelViewSet):
+      pass
+  ```
+
+  
+
