@@ -46,7 +46,7 @@ class ProjectsViewSet(viewsets.ModelViewSet):
 	
     # 1.使用视图集中的路由机制自动生成路由，需要使用到action装饰器
     #	methods参数默认为get方法，可以在里诶表中指定多个请求
-    #	detail参数指定是否接收模型主键值
+    #	detail参数指定是否接收模型主键值(路径参数pk)
     #	url_path参数指定生成的路由条路名称，默认为自定义action方法名称
     #	url_name指定生成的路由名称后缀。默认为自定义action方法名称
     @action(methods=['get'], detail=False)
@@ -56,5 +56,5 @@ class ProjectsViewSet(viewsets.ModelViewSet):
         return Response(names_lst, status=status.HTTP_200_OK)
 ```
 
-
+### 不同的action使用不同的序列化器
 
