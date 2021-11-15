@@ -56,5 +56,47 @@ class ProjectsViewSet(viewsets.ModelViewSet):
         return Response(names_lst, status=status.HTTP_200_OK)
 ```
 
-### 不同的action使用不同的序列化器
+### 使用不同的序列化器
+
+- 重写get_serializer_class方法：使用self.action属性获取action，选择使用不同的序列化器
+
+  ```python
+  # serializers.py
+  class ProjectsNamesSerializer(serializers.ModelSerializer):
+      class Meta:
+          model = ProjectModel
+          fields = ['id', 'name']
+  ```
+
+  ```python
+  # view.py
+  from projects.models import ProjectModel
+  from projects import serializers
+  
+  class ProjectsViewSet(viewsets.ModelViewSet):
+      queryset = ProjectModel.objects.all()
+      serializer_class = serializers.ProjectSerializer
+      search_fields = ['=name']
+      ordering_fields = ['id', 'name', 'create_time']
+      filter_backends = [SearchFilter, OrderingFilter]
+      pagination_class = PageNumberPagination
+  
+      @action(methods=['get'], detail=False)
+      def names(self, request):
+          return self.list(request)	# 调用父类的list
+  
+      def get_serializer_class(self):
+          return serializers.ProjectsNamesSerializer if self.action == 'names' else super().get_serializer_class()
+  ```
+
+- 不需要类提供的过滤、分页功能，重写filter_queryset()、paginate_queryset()方法即可
+
+  ```python
+  # view.py
+  def filter_queryset(self, queryset):
+          return self.queryset if self.action == 'names' else super().filter_queryset(queryset)
+  
+      def paginate_queryset(self, queryset):
+          return None if self.action == 'names' else super().filter_queryset(queryset)
+  ```
 
