@@ -16,7 +16,7 @@
   ```python
   # setting.py
   REST_FRAMEWORK = [
-      'DEFAULT_SCHEMA_CLASS': 'rest_framework.schema.coreapi.AutoSchema',
+      'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
   ]
   ```
 
@@ -64,21 +64,19 @@
   
   schema_view = get_schema_view(
       openapi.Info(
-      	title = '接口文档平台',
-          deafault = 'V1',
-          description = '',
-          terms_of_service = 'http://api.site',
-          contact = openapi.Contact(email=xxx''),
-          license = openapi.License(name='BSD License'),
-      ),
-      public = True,
+          title='接口平台API',
+          default_version='v1.0',
+          description='接口平台接口文档',
+          terms_of_service='#',
+          contact=openapi.Contact(email='测试'),
+          license=openapi.License(name='BSD License'), ),
+      public=True,
       # permission_classes = (permission.AllowAny,),
   )
   urlpatterns = [
-      re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cahe_timeout=0)), name='schema-json'),
-      path('swagger/', schema_view.without_ui('swagger', cahe_timeout=0), name='schema-swagger-ui'),
-      path('redoc/', schema_view.without_ui('redoc', cahe_timeout=0), name='schema-redoc'),
+      re_path('^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+      path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+      path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
   ]
   ```
-
   
