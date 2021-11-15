@@ -403,5 +403,11 @@ class ProjectsViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
       pass
   ```
 
-  
+#### 四、类视图实现原则
+
+- 类视图尽量简化
+- 根据需求选择相应的父类视图
+- 如果DRF中的类视图有提供相应的逻辑，那么直接使用父类的方法
+- 如果DRF中的类视图能满足绝大多数需求，那么直接重写父类的实现
+- 如果DRF中的类视图
 
