@@ -1,6 +1,6 @@
 ### DRF视图
 
-#### 一、APIView
+#### 一、	
 
 - DRF中的APIView，是Django中View的子类
 - 根据前端请求头中传递的Content-Type自动解析参数
@@ -156,9 +156,8 @@ class ProjectsView(GenericAPIView):
 ```python
 # 1.使用DEFAULT_PAGINATION_CLASS指定分页引擎，或视图中pagination_clas指定引擎
 # 2.指定PAGE_SIZE分页的数据条数
-# 3.必须调用paginate_queryset(查询集对象)方法
-# 4.paginate_queryset(查询集对象)返回的对象传给序列化器
-# 5.最终必须返回get_paginated_response(序列化后的数据)方法
+# 3.必须调用paginate_queryset(查询集对象)返回的对象传给序列化器
+# 4.最终必须返回get_paginated_response(序列化后的数据)方法
 # 也可以对PageNumberPagination进行重写，定义新功能
 from rest_framework.generics import GenericAPIView
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -409,5 +408,4 @@ class ProjectsViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
 - 根据需求选择相应的父类视图
 - 如果DRF中的类视图有提供相应的逻辑，那么直接使用父类的方法
 - 如果DRF中的类视图能满足绝大多数需求，那么直接重写父类的实现
-- 如果DRF中的类视图
 
