@@ -84,7 +84,7 @@ class ProjectsView(GenericAPIView):
     3.lookup_field类属性用于指定传递主键参数时，接收的url路径参数名，默认为pk
     4.父类有提供self.get_object()获取模型对象
     '''
-    query_set = Projects.objects.all()
+    queryset = Projects.objects.all()
     serializer_class = ProjectSerializer
 
     def get(self, request: Request):
