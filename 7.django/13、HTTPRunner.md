@@ -35,7 +35,7 @@ hrun --startproject [projectname]	# 创建项目
   	7.yaml使用-表示数组结构
   ```
 
-#### 3.httprunner编写正向用例
+#### 3.httprunner api
 
 ##### 1.api中编写用例
 
@@ -116,13 +116,148 @@ variables:
 #	- 在yaml文件中使用 ${函数名()} 即可调用
 ```
 
+#### 3.httprunner testcases
+
+##### 1.模板
+
+```yaml
+# variables优先级顺序
+#	1.config中variables
+#	2.teststeps中的variables
+#	3.api中的variables
+# validate校验逻辑：
+#	1.如果teststeps中的校验方式和api不一致，会合并校验
+#	2.api中的validate一般为基础断言方式（如响应状态码等）
+# config定义全局配置信息
+config:
+	name: "demo testcase"
+	variables: 
+		device_sn: "abc"
+		username: ${ENV(USERNAME)}
+		password: ${ENV(PASSWORD)}
+	base_url: "http://127.0.0.1:5000"
+
+# teststeps定义每个测试步骤
+teststeps:
+-
+	name: demo step 1
+	api: path/toapi1.yal
+	variables:
+		user_agent: "iOS/10.3"
+		device_sn: $device_sn
+	# extract用于创建变量提取参数，下方测试步骤中该变量均能调用
+	extract:
+		- token: content.token
+	validate:
+		- eq: ["status_code", 200]
+	
+	name: demo step 2
+	api: path/to/api2/yml
+	variables:
+		token: $token
+```
+
+##### 2.testcases编写用例
+
+```yaml
+# projects_testcase.yml	获取项目列表接口测试用例
+config:
+	name: "测试获取项目列表数据接口"
+	
+teststeps:
+-
+	name: "先登录"
+	api: "api.login_api.yml"
+	extract:
+		- token: content.token
+	
+	name: "获取项目列表数据"
+	api: "api/projects_api.yml"
+	
+# projects_api.yml	获取项目列表数据api
+name: "获取项目列表数据接口-正向用例"
+base_url: ${ENV(URL)}
+request:
+	url: '/projects/'
+    method: GET
+    # 请求头中添加参数
+    headers:
+    	Authorization: "JWT $token"
+    # 添加查询字符串参数
+    params:
+    	p: "2"
+    	s: "3"
+validate:
+	- eq: ["content", 200]
+```
+
+#### 4.httprunner testsuites
+
+##### 1.模板
+
+```yaml
+# config定义所有用例的公共信息
+config:
+	name: "demo testsuite"
+	variables:
+		device_sn: "XYZ"
+	base_url: "http://127.0.0.1:5000"
+	
+testcases:
+-
+	name: call demo_testcase with data1
+	testcase: path/to/projects_testcases.yml
+	variables:
+		device_sn: $device_sn
+-
+	name: call demo_testcase with data2
+	testcase: path/to/projects_testcases.yml
+	variables:
+		device_sn: $device_sn
+```
+
+##### 2.testsuites数据驱动
+
+```yaml
+config:
+	name: "demo testsuite"
+
+testcases:
+-
+	name: "测试登录接口"
+	testcase: path/to/login_testcase.yml
+	# parameters定义数据驱动参数
+	parameters:
+		# 定义传参的内容，和下面的数据一一对应
+		- title-username-password-status_code-msg
+			- ['正常登录', 'zsm', '123456', 200, 'token']
+			- ['密码错误', 'zsm', '1234657', 400, 'non_filed_errors']
+```
+
+##### 3.测试数据存放
+
+- 存放在csv中，使用${P(csv文件路径)}
+
+  ```
+  # csv文件的数据使用,相隔
+  - title-username-password-status_code-msg: ${P(data/data.csv)}
+  ```
+
+- 存放在函数返回中，直接调用函数
+
+  ```
+  - title-username-password-status_code-msg: ${函数()}
+  ```
+
+#### 5.执行入口
+
+```python
+# 新建入口py文件执行yaml文件
+from httprunner.api import HttpRunner
+obj = HttpRunner(log_level="DEBUG")
+obj.run("yml文件路径")
+res = obj.summary	# 获取执行yml文件的所有信息
+```
 
 
-#### 2.命令行操作演练
-
-- 基本操作
-- 创建&引用环境变量
-- 调用函数、base_url、添加valiate
-- extract实现接口依赖 
-- 使用测试套件实现数据驱动、set_hooks、teardown_hooks
 
