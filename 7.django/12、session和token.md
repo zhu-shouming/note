@@ -205,7 +205,24 @@ header、playload、signature
   ```
 
   ```python
-  # 路由from django.urls import pathfrom rest_framework_jwt.views import obtain_jwt_tokenfrom user import viewsurlpatterns = [    path('login/', obtain_jwt_token),    path('register/', views.UserView.as_view()),]# 视图from user import serializersfrom django.contrib.auth.models import Userfrom rest_framework.generics import CreateAPIViewclass UserView(CreateAPIView):    queryset = User.objects.all()    serializer_class = serializers.UserSerializer
+  # 路由
+  from django.urls import path
+  from rest_framework_jwt.views import obtain_jwt_token
+  from user import views
+  
+  urlpatterns = [
+      path('login/', obtain_jwt_token),
+      path('register/', views.UserView.as_view()),
+  ]
+  # 视图
+  from user import serializers
+  from django.contrib.auth.models import User
+  from rest_framework.generics import CreateAPIView
+  
+  
+  class UserView(CreateAPIView):
+      queryset = User.objects.all()
+      serializer_class = serializers.UserSerializer
   ```
 
   
