@@ -1,42 +1,4 @@
-### 一、项目分析
-
-#### 1.架构设计
-
-- 结构模式
-  - 前后端分离
-- 前端架构
-  - vue + element ui + vue router + axios
-- 后端架构
-  - Django + Django RestFramework + mysql + coreapi + httprunner + yaml
-- 数据库选型
-- 源代码管理
-
-#### 2.数据库设计
-
-- 数据库表的设计至关重要
-- 根据项目需求，设计合适的数据库表
-- 数据库表在前期设计不合理，后期需求增加会变的难以维护
-
-#### 3.测试平台结构
-
-- 主要为接口测试平台
-- 项目模块
-- 接口模块
-- 用例模块
-- 配置模块
-- 内置函数模块
-- 环境变量模块
-- 套件模块
-
-- 用户模块
-
-### 二、项目工程搭建
-
-#### 1.搭建项目
-
-#### 2.基本配置
-
-### 三、用户模块
+### 用户模块
 
 #### 1.修改django用户模型
 
@@ -175,4 +137,76 @@ header、playload、signature
    }
    # 备注：也可以直接把源码复制放在项目根目录下，直接改源码
    ```
+
+### 用户注册接口实现
+
+- 需求：
+
+  - 前端提供用户名、密码、确认密码、邮箱
+  - 用户名长度6-20字符且唯一，密码和确认密码一致，邮箱格式正确且唯一
+  - 返回用户ID、用户名和生成token值
+
+  ```python
+  # 序列化器
+  from rest_framework import serializers, validators
+  from django.contrib.auth.models import User	# django用户表
+  from rest_framework_jwt.serializers import jwt_payload_handler, jwt_encode_handler
+  
+  class UserSerializer(serializers.ModelSerializer):
+      # django用户表添加额外字段
+      password_confirm = serializers.CharField(label='确认密码', help_text='确认密码', max_length=20, min_length=6, write_only=True, error_messages={'max_length': '用户名不能大于20位', 'min_length': '用户名不能小于6位'})
+      token = serializers.CharField(label='生成token', read_only=True)
+  
+      class Meta:
+          model = User
+          fields = ('id', 'username', 'password', 'password_confirm', 'email', 'token')
+          extra_kwargs = {
+              'username': {
+                  'label': '用户名',
+                  'help_text': '用户名',
+                  'max_length': 20,
+                  'min_length': 6,
+                  'error_messages': {
+                      'max_length': '用户名不能大于20位',
+                      'min_length': '用户名不能小于6位'
+                  }
+              },
+              'password': {
+                  'label': '密码',
+                  'help_text': '密码',
+                  'max_length': 20,
+                  'min_length': 6,
+                  'write_only': True,
+                  'error_messages': {
+                      'max_length': '密码长度不能大于20位',
+                      'min_length': '密码长度不能小于6位'
+                  }
+              },
+              'email': {
+                  'label': '邮箱',
+                  'help_text': '邮箱',
+                  'required': True,
+                  'validators': [validators.UniqueValidator(queryset=User.objects.all(), message='此邮箱已注册')]
+              }
+          }
+  
+      def validate(self, attrs):
+          password_confirm = attrs.pop('password_confirm')
+          if attrs.get('password') != password_confirm:
+              raise serializers.ValidationError('密码与确认密码不一致')
+          return attrs
+  
+      def create(self, validated_data):
+          user = User.objects.create_user(**validated_data)	# 调用create_user()方法给密码加密
+          payload = jwt_payload_handler(user)	# 使用djangorestframework-jwt模块的方法生成token
+          token = jwt_encode_handler(payload)
+          user.token = token	# 给用户添加token属性，用于序列化输出
+          return user
+  ```
+
+  ```python
+  # 路由from django.urls import pathfrom rest_framework_jwt.views import obtain_jwt_tokenfrom user import viewsurlpatterns = [    path('login/', obtain_jwt_token),    path('register/', views.UserView.as_view()),]# 视图from user import serializersfrom django.contrib.auth.models import Userfrom rest_framework.generics import CreateAPIViewclass UserView(CreateAPIView):    queryset = User.objects.all()    serializer_class = serializers.UserSerializer
+  ```
+
+  
 
