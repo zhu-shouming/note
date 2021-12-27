@@ -11,15 +11,11 @@ connection.queries
 ```python
 # django提供的命令行终端：python manage.py shell，或视图中均可创建数据
 # 1、导入模型类
-from projects.models import Projects
+from projects.models import Project
 # 2、创建模型类实例，关键字参数的形式添加参数
-a = Projects(name='测试开发平台项目', leader='xiaoming')
+a = Project(name='测试开发平台项目', leader='xiaoming')
 # 3、保存数据  
 one.save()
-
-# 查看生成的SQL语句
-from django.db import connection
-connection.queries
 ```
 
 ##### 2、读取数据
@@ -55,15 +51,15 @@ one.delete()
 
 ```python
 # 导入父表、子表模型类
-from projects.models import Projects
-from interfaces.models import Interfaces
-one_project = Projects.objects.create(name='xxx金融项目2', leader='xiaofang')
+from projects.models import Project
+from interfaces.models import Interface
+one_project = Project.objects.create(name='xxx金融项目2', leader='xiaofang')
 
 # 添加子表数据
-# 方式一：通过projects_id=one_project.id关联父表的id
-Interfaces.objects.create(name='登录接口', tester='jack', projects_id=one_project.id)
-# 方式二：通过projects=one_project关联父表数据
-Interfaces.objects.create(name='注册接口', tester='anny', projects=one_project)
+# 方式一：通过project_id=one_project.id关联父表的id
+Interface.objects.create(name='登录接口', tester='jack', project_id=one_project.id)
+# 方式二：通过project=one_project关联父表数据
+Interface.objects.create(name='注册接口', tester='anny', project=one_project)
 ```
 
 ##### 2、查询数据
@@ -73,33 +69,32 @@ Interfaces.objects.create(name='注册接口', tester='anny', projects=one_proje
   ```python
   # 方式一：使用manager对象的get()方法，返回一个Project模型类对象。
   # 当get查询的数据为空或者多条时，会抛出异常。
-  one_project = Projects.objects.get(id=8)
+  one_project = Project.objects.get(id=8)
   
   # 方式二：使用manager对象的filter()方法，返回一个QuerySet对象。
   # 当filter查询的数据为空，返回空的QuerySet对象
   # 当filter查询的数据多条时，返回的结果也会在QuerySet对象中
-  one_project = Projects.objects.filter(id=8)
+  one_project = Project.objects.filter(id=8)
   ```
 
 - 查询表中所有数据：all()方法
 
   ```python
   # 返回一个QuerySet查询集对象
-  all_projects = Projects.objects.all()
+  all_projects = Project.objects.all()
   ```
-  
 
 ##### 3、更新数据
 
 ```python
 # 获取待修改的数据取出（查询集对象），调用update()方法更新数据
-Projects.objects.filter(id=5).update(leader='小红')
+Project.objects.filter(id=5).update(leader='小红')
 ```
 
 ##### 4、删除数据
 
 ```python
-Projects.objects.filter(name__contains='xxx').delete()
+Project.objects.filter(name__contains='xxx').delete()
 ```
 
 #### 三、filter方法的使用
@@ -145,15 +140,18 @@ Projects.objects.filter(字段名__查询类型=具体值)
 
 ```python
 # 需求：查找某个项目下的登录接口
-Projects.objects.filter(interfaces__name__contains='登录')
+Project.objects.filter(interface__name__contains='登录')
+# 需求：获取某个项目下的所有接口
+# 可以在interface后面加上_set进行反向查询，如果关联字段定义了related_name='interface'，可以直接使用interface来反向获取数据
+Projct.objects.get(id=x).interface.all()
 ```
 
 2、获取接口的查询集对象，查询集对象取值.父表模型类小写
 
 ```python
-# 需求：查找登录接口所属的项目
-qs = Interfaces.objects.filter(name__contains='登录')
-qs[0].projects
+# 需求：获取登录接口所属的项目
+qs = Interface.objects.filter(name__contains='登录')
+qs[0].project
 ```
 
 3、多表关联：`关联模型类1小写__关联模型类1中的外键名__关联模型类2中的字段名__查询类型=具体值`
@@ -163,8 +161,8 @@ qs[0].projects
 - 逻辑与
 
   ```python
-  Projects.objects.fileter(name__contains='商').filter(leader='a') # 写法一
-  Projects.objects.fileter(name__contains='商', leader='a')	# 写法二
+  Project.objects.fileter(name__contains='商').filter(leader='a') # 写法一
+  Project.objects.fileter(name__contains='商', leader='a')	# 写法二
   ```
 
 - 逻辑或
@@ -172,7 +170,7 @@ qs[0].projects
   ```python
   from django.db.models import Q
   # 多个Q对象使用|为或的关系，使用&为与的关系
-  Projects.objects.filter(Q(name_contains='商') | Q(leader='a'))
+  Project.objects.filter(Q(name_contains='商') | Q(leader='a'))
   ```
 
 #### 六、查询集对象特性
@@ -200,40 +198,8 @@ qs[0].projects
 from django.db.models import Count, Min, Max, Avg
 
 # 查询每个项目下的接口总数
-Projects.objects.values('id').annotate(Count('interfaces'))
+Project.objects.values('id').annotate(Count('interface'))
 # 查询每个项目下的接口总数，并把聚合运算取名为haha
-Projects.objects.values('id').annotate(haha=Count('interfaces'))
+Project.objects.values('id').annotate(haha=Count('interface'))
 ```
-
-```python
-"""
-需求：
-1、开发5个接口，以对项目进行增删改查操作
-2、创建一条项目数据、获取项目列表数据、获取项目详情、更新一条项目数据、删除一条项目数据
-3、url以及请求方法的规划
-GET		/projects/		获取项目列表数据
-POST	/projects/		创建一条项目数据
-GET		/projects/<int:pk>/	获取一条项目详情数据
-PUT		/projects/<int:pk>/	更新一条项目详情数据
-DELETE	/projects/<int:pk>/	删除一条项目数据
-
-总结：
-1.获取列表数据&获取详情数据
-	a.数据库读取操作
-	b.将模型类对象转化为python中的基本类型，也叫序列化操作
-2.创建数据
-	a.数据校验
-	b.将json字符串转化为python的基本类型，也叫反序列化操作
-	c.数据库写入操作
-3.更新数据
-	a.数据校验
-	b.反序列化操作
-	c.数据库更新操作
-4.删除数据
-	a.数据校验
-	b.数据库删除操作
-"""
-```
-
-
 
