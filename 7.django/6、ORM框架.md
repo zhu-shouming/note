@@ -16,7 +16,7 @@
     GRANT ALL PRIVILEGES ON `*.*` TO 'xiaoming'@'%' IDENTIFIED BY '123456';
     flush privileges; 
     ```
-    
+
   - 配置数据库，在全局配置文件下修改数据库配置
 
     ```python
@@ -52,46 +52,93 @@
 4. 记录
    - 与模型类对象一一对应
 
-##### 4.定义一个模型并生成表
+#### 定义一个模型并生成表
 
-- 创建模型类
+##### 1.如何定义一个模型类
 
-  > 1.定义模型类必须继承Model或Model子类，一个模型类相当于一个table
-  >
-  > 2.使用Field对象定义类属性，相当于表中的字段
+- 定义的模型类需要继承Model或Model子类，一个模型类相当于一个table
+
+- 使用Field对象定义类属性，相当于表中的字段
 
   ```python
-  class People(models.Model):
-    	name = models.CharField(max_length=20)
-      age = models.IntegerField()
+  class Project(models.Model):
+      name = models.CharField(verbose_name='项目名称', help_text='项目名称', max_length=200, unique=True)
+      des = models.CharField(verbose_name='描述', help_text='描述', max_length=200, null=True, blank=True, default='')
   ```
 
-- 生成迁移脚本
+##### 2.定义模型注意事项
 
-  会在子应用migrations/目录下生成迁移脚本
+1. 该Field是否有必选项，如CharField的max_length以及ForeignKey的on_delete选项是必须设置的
 
-  > **python manage makemigrations [appname]**
+2. 数据的完整性：Filed是否是必须（blank = True or False），是否可以为空(null = True or False)。null = True意味数据库里这个字段可以存储为null空值。但是Django对于空白的CharField和TextField永远不会存为null空值，而是存储空白字符串''，所以正确的做法是设置default=''。
 
-  python manage.py -h可查看manage工具相关命令
+   | 字段                          | 必须项                                    |
+   | ----------------------------- | ----------------------------------------- |
+   | CharField() 字符字段          | max_length                                |
+   | FileField() 文件字段          | upload_to                                 |
+   | ImageField()                  | upload_to                                 |
+   | ForeignKey()  单对多关系      | to必需指向其他模型，on_delete设置删除策略 |
+   | ManyToManyField()  多对多关系 | to 必需指向其他模型                       |
 
-  python manage.py sqlmigrate 应用程序 迁移脚本，查看创建表sql语句
+##### 3.生成迁移脚本
 
-- 执行迁移脚本
+```python
+# 会在该应用migrations/目录下生成迁移脚本
+python manage makemigrations [appname]
+```
 
-  生成的表名默认为：应用名_模型类名小写。默认会自动创建一个（自增、非空）的id主键。
+注：python manage.py -h可查看manage工具相关命令
 
-  > **python manage migrate [appname]**
+​		python manage.py sqlmigrate 应用程序 迁移脚本，查看创建表sql语句
 
-##### 5.模型类字段使用
+##### 4.执行迁移脚本
 
-- CharField指定varchar类型，必须设置max_length参数
+```python
+# 默认生成表名：应用名_模型类类名小写。默认会自动创建一个自增、非空的id主键
+python manage migrate [appname] [migrationname]
+```
+
+- Django Model Meta类选项
+
+  ```python
+  class Meta:
+      # 在模型类中定义一个Meta内部类修改当前表的元信息
+      db_table = 'tb_project'	# 指定创建的数据表名称
+      verbose_name = '项目表'	# 指定创建的数据表中文描述信息
+      verbose_name_plural = '项目表'
+      get_latest_by = ['-priority', 'order_date']	# 按Priority降序, order_date升序排列.
+      ordering = ['pub_date'] # 按什么排序
+      abstract = True	# 声明此类是否为抽象
+      app_label = 'myapp'	# 定义APP的标签
+      permissions = (("can_deliver_pizzas", "Can deliver pizzas"),)	# 添加授权	
+  ```
+
+- 抽象类的应用
+
+  ```python
+  # 当多张表有相同字段，可以把相同字段抽离出来形成抽象模型类。需要使用到公共字段的模型类继承抽象模型类即可。
+  # 项目下创建公共资源包utils/base_models.py
+  class BaseModel(models.Model):
+      id = models.AutoField(primary_key=True, verbose_name='id主键', help_text='id主键')
+      create_time = models.DateTimeField(auto_now_add=True, verbose_name='创建时间', help_text='创建时间')
+      update_time = models.DateTimeField(auto_now=True, verbose_name='更新时间', help_text='更新时间')
+      
+      class Meta:
+      	abstract = True	
+  ```
+
+#### 字段及参数的使用
+
+##### 1.模型类字段使用
+
+- CharField指定varchar类型
 - IntegerField设置整型字段
 - AutoField设置字段自增
 - BooleanField设置布尔类型字段
 - TextField设置长文本类型字段
 - DateTimeField指定日志时间类型字段
 
-##### 6.模型类字段参数说明
+##### 2.模型类字段参数说明
 
 - 字段参数设置primary_key=True后，ORM框架不会自动创建id主键
 - db_index=True添加索引
@@ -102,29 +149,7 @@
 - null指定当前字段是否允许为空值，blank指定前端在创建数据时是否允许不输入空值
 - 参数auto_now_add=True，创建数据时，会自动把当前时间赋值给字段；auto_now=True，在更新数据时，会自动把当前时间赋值给字段。常用于DateTimeField模块
 
-```python
-# 项目表
-class Projects(models.Model):
-    id = models.AutoField(primary_key=True, verbose_name='id主键', help_text='id主键')
-    name = models.CharField(unique=True, max_length=20, verbose_name='项目名称', help_text='项目名称')
-    leader = models.CharField(max_length=20, verbose_name='项目负责人', help_text='项目负责人')
-    is_execute = models.BooleanField(default=True, verbose_name='项目是否开展', help_text='项目是否展开')
-    desc = models.TextField(null=True, verbose_name='项目描述信息', help_text='项目描述信息')
-    create_time = models.DateTimeField(auto_now_add=True, verbose_name='创建时间', help_text='创建时间')
-    update_time = models.DateTimeField(auto_now=True, verbose_name='更新时间', help_text='更新时间')
-    
-    # 模型类中添加文本描述
-    def __str__(self):
-    	return self.name
-    
-    class Meta:
-        # 在模型类中定义一个Meta内部类修改当前表的元信息
-        db_table = 'tb_project'	# 指定创建的数据表名称
-        verbose_name = '项目表'	# 指定创建的数据表中文描述信息
-        verbose_name_plural = '项目表'
-```
-
-##### 7、使用**ForeignKey**关联表
+#### 使用ForeignKey关联表
 
 - 表与表之间的关联关系
   1. 一对多(ForeignKey)：Projects表与Interfaces表
@@ -134,12 +159,15 @@ class Projects(models.Model):
 ```python
 # 接口表
 from django.db import models
-from projects.models import Projects
+from utils import BaseModel
+from projects.models import Project
 
-class Interfaces(models.Model):
-    id = models.AutoField(primary_key=True, verbose_name='id主键', help_text='id主键')
-    name = models.CharField(max_length=15, unique=True, verbose_name='接口名称', help_text='接口名称')
-    tester = models.CharField(max_length=10, verbose_name='测试人员', help_text='测试人员')
+class Interfaces(BaseModel.BaseModel):
+    name = models.CharField(max_length=200, unique=True, verbose_name='接口名称', help_text='接口名称')
+    tester = models.CharField(max_length=50, verbose_name='测试人员', help_text='测试人员')
+    des = models.CharField(default='', blank=True, max_length=200, verbose_name='接口描述', help_text='接口描述')
+    project = models.ForeignKey('projects.Project', on_delete=models.CASCADE, related_name='interface',
+                                help_text='所属项目')
     # 1.关联字段一般取名为父类名小写
     # 2.使用ForeignKey在从表中指定外键字段
     # 3.ForeignKey需要两个位置参数
@@ -151,27 +179,14 @@ class Interfaces(models.Model):
     #		on_delete=models.SET_NULL：父表数据删除时，对应子表数据设置为null
     #		on_delete=models.PROTECT：父表数据删除时，如果存在对应的从表数据，会抛出异常
     #		on_delete=models.SET_DEFAULT, default=''：父表数据删除时，对应子表数据设置为默认值
-    # 创建数据表时，会自动创建projects_id的字段，用于存放父表外键只
-    projects = models.ForeignKey(Projects, on_delete=models.CASCADE)
+    # 创建数据表时，会自动创建project_id的字段，用于存放父表外键
     
     class Meta:
-        db_table = 'tb_interfaces'
-        verbose_name = '接口表'
-        verbose_name_plural = '接口表'
-```
+        db_table = "tb_interface"
+        verbose_name = "接口信息"
+        verbose_name_plural = verbose_name
 
-##### 8、抽象模型类
-
-> 当多张表有相同字段，可以把相同字段抽离出来形成抽象模型类。需要使用到公共字段的模型类继承抽象模型类即可。
-
-```python
-# 项目下创建公共资源包utils/base_models.py
-class BaseModel(models.Model):
-    id = models.AutoField(primary_key=True, verbose_name='id主键', help_text='id主键')
-    create_time = models.DateTimeField(auto_now_add=True, verbose_name='创建时间', help_text='创建时间')
-    update_time = models.DateTimeField(auto_now=True, verbose_name='更新时间', help_text='更新时间')
-    class Meta：
-    	# abstract指定当前模型类为抽象模型类
-    	abstract = True	
+    def __str__(self):
+        return self.name
 ```
 
