@@ -84,5 +84,6 @@
 
 忽略某个已提交的文件：
 - git update-index --assume-unchanged 文件
+
 取消忽略：
 - git update-index --no-assume-unchanged 文件
