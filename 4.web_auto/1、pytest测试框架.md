@@ -258,6 +258,8 @@ def test_login(data):
 - 简易html报告，下载：pip install pytest-html
 
   > 执行：pytest "--html=report/result.html"
+  >
+  > 不想生成assets目录：pytest -v --html=测试报告的路径 --self-contained-html 要执行的文件
 
 #### 九、pytest重运行
 
