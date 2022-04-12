@@ -129,12 +129,15 @@ def test_1():
 - 类级（只在类中前后运行一次，在类中）：setup_class()、teardown_class()
 - 方法级（开始于方法始末，在类中）：setup_method()、teardown_method()
 - 方法细化级（运行在调用方法的前后）：setup()、teardown()
+
 ##### 2、pytest夹具-fixture
+
 **a、fixture的参数列表**
 
 ```python
 @pytest.fixture(scope="function", params=None, autouse=False, ids=None, name=None)
 ```
+
 - scope：fixture的作用域，默认function，还有class、module、package、session
 - params：一个可选的参数列表，它将导致多个参数调用 fixture 功能和所有测试使用它
 - autouse：默认：False，需要用例手动调用该 fixture；如果是 True，所有作用域内的测试用例都会自动调用该 fixture
@@ -257,9 +260,32 @@ def test_login(data):
 
 - 简易html报告，下载：pip install pytest-html
 
-  > 执行：pytest "--html=report/result.html"
-  >
-  > 不想生成assets目录：pytest -v --html=测试报告的路径 --self-contained-html 要执行的文件
+  > 执行：pytest -v --html=report/result.html  要执行的文件
+  > 如果不想生成assets目录，格式：
+  > pytest -v --html=测试报告的路径 --self-contained-html 要执行的文件
+
+- 生成allure报告
+
+  1. 安装allure-pytest插件：pip install allure-pytest
+
+  2. 执行脚本，生成json格式测试结果：**pytest --alluredir=report --clean-alluredir 执行的文件或文件所在目录** 
+
+     - --alluredir=指定生成结果路径
+     - --clean-alluredir：先清空目录，再生成测试结果
+
+  3. 将json执行结果转换成html报告：**allure generate 生成测试结果数据 -o 生成报告的路径 --clean**，--clean表示：如果已经存在生成报告路径文件夹时，再次使用会提示添加--clean参数来重写
+
+     1. 安装jdk，配置环境变量
+     2. 下载allure开源测试框架，解压allure压缩包，将allure路径下bin文件加入环境变量
+
+     3. 终端输入allure --version检测是否配置完成
+
+  4. Allure常用特性
+
+     - @allure.feature(用于描述被测试产品需求)
+     - @allure.story(用于描述feature的用户场景，即测试需求)
+     - @allure.step()或with allure.step():用于描述测试步骤，将会输出到报告中
+     - allure.attach：用于向测试报告中输入一些附加的信息，通常是一些测试数据，截图等
 
 #### 九、pytest重运行
 
