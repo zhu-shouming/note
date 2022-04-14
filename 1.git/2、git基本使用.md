@@ -87,3 +87,6 @@
 
 取消忽略：
 - git update-index --no-assume-unchanged 文件
+
+pip freeze > requirement.txt  # 将本机安装包版本信息导入txt文件中
+pip install -r requirement.txt  # 读取txt信息安装对应包
