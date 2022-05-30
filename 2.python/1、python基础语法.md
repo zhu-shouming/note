@@ -61,7 +61,7 @@ python的安装包程序
 - pip install 第三方库报ERROR：THESE PACKAGE DO NOT MATCH THE HASHES FROM THE REQUIRMENTS FILES。下载包时期望得到hash值不是真正的hash
 
   ```bash
-  # 解决方法，pip包安装时添加--no-cahce-dir
+  # 解决方法，pip包安装时添加--no-cache-dir
   pip install 包名 --no-cahce-dir
   ```
 
