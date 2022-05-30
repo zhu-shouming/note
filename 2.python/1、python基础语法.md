@@ -63,6 +63,8 @@ python的安装包程序
   ```bash
   # 解决方法，pip包安装时添加--no-cache-dir
   pip install 包名 --no-cahce-dir
+  # 如果依旧报比对hash不一致，升级安装包
+  pip install --upgrade 包名
   ```
 
 - 一键安装第三方库
