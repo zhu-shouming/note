@@ -14,8 +14,6 @@
 4.  所有的包 Package 必须要有` __init__`.py 文件 
 
 ```python
-# test_demo.py
-
 class TestDemo:
     def test_one(self):
         x = "this"
@@ -24,55 +22,44 @@ class TestDemo:
 
 #### 三、pytest执行用例规则
 
-##### 1、pycharm设置运行
+##### 1.pycharm设置运行
 
 1.  打开PyCharm，依次打开Settings--->Tools--->Python Integrated Tools， 将Testing里的Default test runner选择项选为pytest，保存即可  
 2.  右键运行 
 
 ##### 2.命令执行
 
-| 命令                                | 作用                                             |
-| ----------------------------------- | ------------------------------------------------ |
-| pytest                              | 目录下执行所有的用例                             |
-| pytest 文件名.py                    | 执行单独一个pytest模块                           |
-| pytest 文件名.py::类名              | 执行某个模块里面的某个类                         |
-| pytest 文件名.py::类名::方法名      | 执行某个模块里面某个类里的方法                   |
-| pytest -v 文件名.py                 | -v打印运行日志信息（详细）                       |
-| pytest -q 文件名.py                 | -q打印运行日志信息（简略）                       |
-| pytest -v -s 文件名.py              | -s是带控制台输出结果，也是输出详细运行日志       |
-| pytest -m login                     | 将运行用 @pytest.mark.login 装饰器修饰的所有测试 |
-| pytest -x 文件名.py                 | -x用例运行失败则立即停止执行                     |
-| pytest -v -k "one" 文件名.py        | 执行测试用例名称包含 one 的所有用例              |
-| pytest -v -k "not one" 文件名.py    | 执行测试用例名称不包含 one 的所有用例            |
-| pytest -v -k "one or two" 文件名.py | 执行测试用例名称包含 one 或 two 的所有用例       |
-| pytest 文件名.py --maxfail=1        | 用例运行时允许的最大失败次数，超过则立即停止     |
+- pytest [options] [file_or_dir]
+  - options:参数
+  -  file_or_dir:测试用例文件或所在目录
 
-##### 3、pytest.main()设置运行
+##### 3.pytest.main()设置运行
 
 **main函数有2个可选参数**
 
--  args：命令行参数列表
--  plugins：初始化期间要自动注册的插件对象列表 
+- args：命令行参数列表
 
-| 命令                                                 | 作用                                              |
-| ---------------------------------------------------- | ------------------------------------------------- |
-| pytest.main()                                        | 等价于直接运行pytest命令                          |
-| pytest.main(["-s"])                                  | 在命令行运行pytest -s                             |
-| pytest.main(["-s", "-x"])                            | 在命令行运行pytest -s -x                          |
-| pytest.main(["test/case"])                           | 执行test/case文件夹下的全部用例                   |
-| pytest.main(["test/case/test_case1.py"])             | 执行test/case/test_case1.py文件里的全部用例       |
-| pytest.main(["test/case/test_case1.py::test_login"]) | 执行test/case/test_case1.py文件里的test_login用例 |
-| pytest.main(["test/case"], plugins=[插件名])         | 加载指定插件                                      |
+- plugins：初始化期间要自动注册的插件对象列表 
 
-##### 4、用例执行后的状态
+  如：pytest.main(["test/case"], plugins=[插件名])，执行用例时加载指定插件。
 
-> PASSED：测试通过
->
-> FAILED：断言失败
->
-> ERROR：用例本身写的质量不行，本身代码报错（例如：fixture 不存在，fixture 里面有报错）
->
-> XFAIL：预期失败，加了 @pytest.mark.xfail()
+注：pytest中输入参数，在pytest.main()中用[]列表传入
+
+##### 4.命令行参数
+
+- -s：输出用例的调试信息，比如`print`的打印信息等
+- -v：输出用例更加详细的执行信息，比如用例所在的文件及用例名称等
+- -m：用来标记测试并分组，执行特定的测试用例。与pytest标签功能(@pytest.mark.标签名)搭配使用
+- --1f：当用例执行完成后，如果有失败的用例，这个命令就会让失败的用例重新运行一次
+- --ff：当使用这个参数后，失败的用例会首先执行，剩余的用例也会再次执行一次
+- pytest 文件名.py --maxfail=1：用例运行时允许的最大失败次数，超过则立即停止
+
+##### 5.用例执行结果
+
+- PASSED：测试通过
+- FAILED：断言失败
+- ERROR：用例本身写的质量不行，本身代码报错（例如：fixture 不存在，fixture 里面有报错）
+- XFAIL：预期失败，加了 @pytest.mark.xfail()
 
 #### 四、pytest标签功能
 
