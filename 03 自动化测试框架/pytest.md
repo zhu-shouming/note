@@ -241,19 +241,22 @@ def test_login(data):
 
   1. 安装allure-pytest插件：pip install allure-pytest
 
-  2. 执行脚本，生成json格式测试结果：**pytest --alluredir=report --clean-alluredir 执行的文件或文件所在目录** 
+  2. 安装allure和其依赖
+
+     - 安装jdk，配置环境变量
+
+     - 下载allure开源测试框架，解压allure压缩包，将allure路径下bin文件加入环境变量
+
+     - 终端输入allure --version检测是否配置完成
+
+  3. 执行脚本，生成json格式测试结果：**pytest --alluredir=report --clean-alluredir 执行的文件或文件所在目录** 
 
      - --alluredir=指定生成结果路径
      - --clean-alluredir：先清空目录，再生成测试结果
 
-  3. 将json执行结果转换成html报告：**allure generate 生成测试结果数据 -o 生成报告的路径 --clean**，
+  4. 将json执行结果转换成html报告：**allure generate 生成测试结果数据 -o 生成报告的路径 --clean**
 
-     1. 安装jdk，配置环境变量
-     2. 下载allure开源测试框架，解压allure压缩包，将allure路径下bin文件加入环境变量
-
-     3. 终端输入allure --version检测是否配置完成
-
-  4. Allure常用特性
+  5. Allure常用特性
 
      - @allure.feature(用于描述被测试产品需求)
      - @allure.story(用于描述feature的用户场景，即测试需求)
@@ -262,6 +265,10 @@ def test_login(data):
      - allure.attach：用于向测试报告中输入一些附加的信息，通常是一些测试数据，截图等
      - @allure.title:给测试用例添加标题
      - allure.dynamic：有很多属性，如title、feature，动态添加allure相关注释
+
+  6. allure查看报告
+     - 方式一：pytest执行后生成json结果，使用`allure serve 测试报告路径`即可查看
+     - 方式二：使用allure generate生成的测试报告，使用`allure open 测试报告路径`查看
 
 ##### 九、pytest重运行
 
