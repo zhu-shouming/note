@@ -42,3 +42,54 @@
 | /var        | 存放经常被修改的东西，比如各种的日志文件                     |
 | /run        | 存放系统启动以来的信息。如果系统重启，这个目录下的文件应该被删掉或清除 |
 
+#### 防火墙配置
+
+防火墙分类：Iptables(静态防火墙)、Firewalld(动态防火墙)
+
+防火墙常用命令
+
+```bash
+systemctl enable/disable firewalld	# 设置开机启用/禁用防火墙
+systemctl start/stop firewalld	# 启动/关闭防火墙
+systemctl status firewalld	# 检查防火墙状态，等同于firewall-cmd --state
+firewall-cmd --zone=public --add-port=80/tcp --permanent	# 开放tcp80端口
+firewall-cmd --zone=public --add-port=9595/udp --permanent	#开放udp9595端口
+firewall-cmd --zone=public --remove-port=80/tcp --permanent	# 关闭tcp80端口
+firewall-cmd --reload	# 配置立即生效
+firewall-cmd --list-ports	# 查看防火墙所有开放的端口
+# 查看监听的端口
+netstat -ntlp	# TCP
+netstat -nulp	# UDP
+```
+
+注：iptables和firewaldl是linux防火墙的两种管理程序，真正的防火墙执行者位于内核的neifilter。只是两种防火墙管理程序使用方法不一样，配置防火墙时，建议只使用其中的一种。
+
+##### Failed to start firewalld - dynamic firewall daemon.
+
+- 原因一：系统安装的python版本原因。usr/sbin/firewalld文件头部的python版本和安装的python版本不一致导致的
+
+  1. 先查看linux系统的Python版本：python --version
+
+  2. 查看firewalld在那个路径下：which firewalld
+
+  3. 查看firewalld文件和firewalld-cmd文件头是否一致且与Python一致，如果不一致，需要改成与Python版本一致。
+
+     ```bash
+     head -n 10 /usr/sbin/firewalld
+     head -n 10  /usr/bin/firewall-cmd
+     ```
+
+- 原因二：firewalld的进程问题
+
+  ```bash
+  pkill -f firewalld
+  ```
+
+  
+
+
+
+
+
+
+
