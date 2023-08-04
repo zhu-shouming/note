@@ -1,26 +1,28 @@
 #### 容器生态系统
 
-1. 容器核心技术：容器在单个host上运行起来的那些技术
-   1. 容器规范：runtime spec和image format spec
-   2. 容器runtime：runtime需要和操作系统kernel紧密协作，为容器提供运行环境。lxc、runc和rkt是目前主流的三种容器runtime
-   3. 容器管理工具：lxd是lxc对应管理工具；runc管理工具是docker engine，docker engine包含后台deamon和cli两个部分；rkt的管理工具是rkt cli
-   4. 容器定义工具：允许用户定义容器的内容和属性，docker image是Docker容器的模板；dockerfile包含若干命令的文本文件，可通过这些命令创建docker iamge；ACI与docker image类似，由CoreOS开发的rkt容器的image格式。
-   5. Registries：Docker Registry构建私有的Registry；Docker Hub是docker为公众提供的托管Registry；Quay.io与Docker Hub类似。
-   6. 容器OS：专门运行容器的操作系统。如coreos、atomic、ubuntu core
-2. 容器平台技术：让容器作为集群在分布式环境中运行
-   1. 容器编排引擎：基于容器的应用一般会采用微服务架构，基于微服务的应用实际上是一个动态可伸缩的系统，而容器编排引擎是一种高效的方法来管理容器集群
-      - docker swarm是docker开发的容器编排引擎
-      - kubernetes是Google领导开大的开源容器编排引擎，同时支持Docker和CoreOS容器
-      - mesos是一个通用的集群资源调度平台，mesos与marathon一起提供容器编排引擎
-   2. 容器管理平台：架构在容器编排引擎之上的一个更为通用的平台，抽象了编排引擎的底层实现细节，为用户提供更方便的功能。Rancher和ContainerShip是容器管理平台的典型代表
-   3. 基于容器的PaaS：为微服务应用开发人员和公司提供了开发、部署和管理应用的平台，使用户不必关心底层基础设施而专注于应用的开发。Deis、Flynn和Dokku都是开源容器PaaS的代表
-3. 容器支持技术
-   1. 容器网络：docker network是Docker原生的网络解决方案，还可以采用如flannel、weave和calico
-   2. 服务发现：保存容器集群中所有微服务最新的信息，并对外提供API，提供服务查询功能。etcd、consul和zookeeper是服务发现的典型解决方案
-   3. 监控：docker ps/top/stats是Docker原生的命令行监控工具。sysdig、cAdvisor/Heapster和Weave Scope是其他开源的容器监控方案
-   4. 数据管理：Rex-Ray管理工具
-   5. 日志管理：docker logs和logspout
-   6. 安全性：OpenSCAP是一种容器安全工具
+容器核心技术：容器在单个host上运行起来的那些技术
+1. 容器规范：runtime spec和image format spec
+2. 容器runtime：runtime需要和操作系统kernel紧密协作，为容器提供运行环境。lxc、runc和rkt是目前主流的三种容器runtime
+3. 容器管理工具：lxd是lxc对应管理工具；runc管理工具是docker engine，docker engine包含后台deamon和cli两个部分；rkt的管理工具是rkt cli
+4. 容器定义工具：允许用户定义容器的内容和属性，docker image是Docker容器的模板；dockerfile包含若干命令的文本文件，可通过这些命令创建docker iamge；ACI与docker image类似，由CoreOS开发的rkt容器的image格式。
+5. Registries：Docker Registry构建私有的Registry；Docker Hub是docker为公众提供的托管Registry；Quay.io与Docker Hub类似。
+6. 容器OS：专门运行容器的操作系统。如coreos、atomic、ubuntu core
+
+容器平台技术：让容器作为集群在分布式环境中运行
+1. 容器编排引擎：基于容器的应用一般会采用微服务架构，基于微服务的应用实际上是一个动态可伸缩的系统，而容器编排引擎是一种高效的方法来管理容器集群
+   - docker swarm是docker开发的容器编排引擎
+   - kubernetes是Google领导开大的开源容器编排引擎，同时支持Docker和CoreOS容器
+   - mesos是一个通用的集群资源调度平台，mesos与marathon一起提供容器编排引擎
+2. 容器管理平台：架构在容器编排引擎之上的一个更为通用的平台，抽象了编排引擎的底层实现细节，为用户提供更方便的功能。Rancher和ContainerShip是容器管理平台的典型代表
+3. 基于容器的PaaS：为微服务应用开发人员和公司提供了开发、部署和管理应用的平台，使用户不必关心底层基础设施而专注于应用的开发。Deis、Flynn和Dokku都是开源容器PaaS的代表
+
+容器支持技术
+1. 容器网络：docker network是Docker原生的网络解决方案，还可以采用如flannel、weave和calico
+2. 服务发现：保存容器集群中所有微服务最新的信息，并对外提供API，提供服务查询功能。etcd、consul和zookeeper是服务发现的典型解决方案
+3. 监控：docker ps/top/stats是Docker原生的命令行监控工具。sysdig、cAdvisor/Heapster和Weave Scope是其他开源的容器监控方案
+4. 数据管理：Rex-Ray管理工具
+5. 日志管理：docker logs和logspout
+6. 安全性：OpenSCAP是一种容器安全工具
 
 #### Docker架构
 
@@ -67,7 +69,7 @@ docker提供了两种构建镜像的方法：docker commit命令和Dockerfile构
 
 1. 准备Dockerfile文件
 
-2. docker build -t 镜像名:tag -f dockerfile文件路径
+2. **docker build -t 镜像名:tag -f dockerfile文件路径**
 
    注：build context为当前执行构建所在目录，该目录下的所有文件和子目录都会被发送给Docker daemon。不要将多余文件放到build context，特别不要把 /、/usr作为build context，否则构建过程会相当缓慢甚至失败。
 
@@ -194,188 +196,85 @@ docker stats ContainID # 查看容器的资源信息
 
 #### Docker网络
 
+docker安装时会自动在host上创建三个网络
 
+1. none网络：什么都没有的网络，容器创建时，可以通过--network=none指定使用none网络。一般用于安全性要求高并且不需要联网的应用
+2. host网络：容器的网络配置与host完全一样。可以通过 --network=host指定使用host网络。
+3. bridge网络：Docker安装时会创建一个命名为docker0的Linux bridge。如果不指定--network，创建的容器默认都会挂到docker0上。
 
-#### 一、docker下载、安装及配置
+除了自动创建的网络，用户可以根据业务需要创建user-defined网络
 
-##### 设置docker源地址
+4. user-defined网络：有三种网络驱动，bridge、overlay和macvlan，overlay和macvlan用于创建跨主机的网络
 
-1. upstart的系统
+##### 容器间通信
 
-   - 编辑 /etc/default/docker ，在 DOCKER_OPTS 中配置
-   - 重启服务：sudo service docker restart
+1. IP通信：两个容器要能通信，必须要有属于同一个网络的网卡。不同网络的容器间通信，通过docker network connect将现有容器加入到指定网络
+2. Docker DNS Server：从Docker 1.10版本开始，docker daemon实现了一个内嵌的DNS server，使容器可以直接通过“容器名”通信。**使用docker DNS有个限制：只能在user-defined网络中使用。**
+3.  joined容器：先创建一个容器，名字为web1。然后创建另一个容器并通过 **--network=container:web1**指定joined容器为web1。这两个容器共享相同的网络栈
 
-2. systemd的系统： /etc/docker/daemon.json 中写入如下内容（若没有文件则新建）
-
-   ```json
-   {   
-     "registry-mirrors": [
-       "https://xxxxxxxx.mirror.aliyuncs.com"
-     ]
-   }
-   ```
-
-   - 重新启动服务
-
-     ```bash
-     sudo systemctl daemon-reload
-     sudo systemctl restart docker
-     ```
-
-**注**：1.需保持该文件符合json规范，否则docker将不能启动；2.检查加速地址是否生效：docker info
-
-##### docker安装
-
-- mac
-  1. 浏览器下载安装包（www.docker.com）
-  2. 安装，点击运行，`docker info`检测是否运行
-  3. 可以配置docker源地址
-- linux
-  1. sudo wget -qO- httpd://get.docker.com | sh # 将wget下载简化输出到标准输出，将命令传递给sh执行。
-  2. sudo usermod -aG docker $USER # 将用户添加到docker用户组
-  3. docker info
-```bash
-$ docker --version # 查看docker的版本
-$ docker --help # docker帮助文档
-```
-
-#### 五、dockerfile
-
-- Dockerfile是一个文本文件，用来配置image。Docker根据Dockerfile生成二进制的image文件
-
-##### 1.第一个Dockerfile
-
-  ```dockerfile
-  FROM alpine:latest
-  MAINTAINER zsm
-  CMD echo 'hello docker'
-  ```
-  FROM alpine:latest 表示要生成一个镜像，需要的一个base基础镜像，alpine是针对于linux生成的一个极小的文件
-  MAINTAINER zsm  提示信息
-  CMD echo 'hello docker' 表示运行的命令
-
-##### 2.创建自定义image
-
-1. 创建一个fun.py文件生成字符串团
-
-   ```python
-   from cowpy import cow
-   
-   print(cow.milk_random_cow("Hello world"))
-   ```
-
-2. 创建一个requirements.txt指定库的信息
-
-   > cowpy==1.1.0
-
-3. 项目根目录下编写Dockerfile文件，touch Dockerfile
-
-   ```dockerfile
-   # 指定基础镜像，FROM 基础镜像:标签版本标号
-   FROM python:alpine
-   LABEL maintaier="zsm <zsm@qq.com>" # 镜像的元数据信息，仅做描述。可以写多个LABEL
-   LABEL description="define Dockerfile Demo"
-   # ADD可以将远程资源下载后复制到容器，也可以将本地压缩文件解压后复制到容器中
-   # COPY将requirements.txt、fun.py拷贝到image文件/app目录
-   COPY . /app 
-   # 指定接下来的工作路径为/app
-   WORKDIR /app 
-   # RUN用于容器中执行linux命令，如果有多条命令，优化选择使用一个RUN去执行多条命令，取代多个RUN执行单个命令
-   RUN pip install -r requirements.txt
-   # ENV key=value 指定环境变量
-   # VoLUME指定容器哪个目录或文件可以映射
-   VoLUME /app/
-   # EXPOSE指定容器可以暴露的端口
-   EXPOSE 8000
-   # USER root:设置运行其他命令的用户
-   # CMD指定容器运行（docker run）时默认执行的命令
-   #	有两种格式：1.shell格式；2.exec格式（常用）
-   #		exec格式：["命令的绝对路径", "参数1", "参数2"]
-   #		shell格式：命令的绝对路径 参数1 参数2
-   CMD ["python", "fun.py"]
-   ```
-
-   ps：新建文本文件.dockerignore，在文件里填写需要忽略的文件
-
-4. 构建image文件
-
-   ```bash
-   # -t：指定镜像的名字,v1表示版本标签，.表示Dockerfile所在路径，docker build -t 镜像名:tag -f dockerfile文件路径
-   $ docker build -t MyImage:v1 .
-   ```
-   
-   备：可以在Dockerfile文件FROM之上定义ARG，在构建镜像中指定参数
-   
-   ```dockerfile
-   ARG CODE_VERSION=alpine
-   FROM python:${CODE_VERSION}
-   ```
-   
-   ```bash
-   $ docker build --build-arg CODE_VERSION=3.7-alpine -t 镜像名:tag
-   ```
-
-#### 六、network
-
-##### 1.docker0
-
-- 默认容器与宿主机之间沟通的桥梁
-
-##### 2.网络类型
-
-- briage：==自定义briage模型，可以通过容器名互反==
-  - nat网络模型
-  - 虚拟交换机
-- host
-  - 与宿主机共享网络，--net=host
-- none
-  - 不配置网络，--net=none
-- overlay
-  - 不同网络进行通信，--net=container:ContainerName
-
-##### 3.网络基本操作
+##### 常见命令
 
 ```bash
-$ docker network ls	# 查看当前网络
-$ docker network inspect NetworkName # 查看网络详情
-$ docker network create mynetwork # 创建一个mynetwork的网络，默认为桥接模式
-# 选项：
-#	-d：指定网络类型，如：-d briage
-#	--subnet:指定子网，如：--subnet 172.16.88.0/24
-$ docker network -d briage --subnet 172.16.88.0/24 mynetworktest
-$ docker run --name nginx -d -P --net mynetworktest nignx:alpine	# 创建名为nginx的容器并加入mynetworktest网络
+docker network ls	# 查看host有的网络类型
+docker network inspect bridge	# bridge网络的配置信息
+docker network create my_net	# 创建网络(默认bridge驱动)
+# 创建网络指定IP网段。使用--subnet和--gateway 参数
+docker network create --subnet 172.22.16.0/24 --gateway 172.22.16.1 my_net
+# 运行容器指定网络及分配IP。使用--network和--ip参数
+docker run -it --network=my_net --ip 172.22.16.8 my_net	
+# 不同网络的容器间通信使用docker network connect命令实现
+docker network connect my_net 容器ID	
 ```
 
-#### 七、volume
+#### Docker存储
 
-##### 1.介绍
+Docker为容器提供了两种存放数据的资源：
 
-- 使用数据卷实现数据持久化
-- 数据备份/数据共享
+1. 由storage driver管理的镜像层和容器层
+2. Data Volume
+   - 将host上已存在的目录或文件mount到容器，通过 -v将其mount到容器。-v的格式为 <host path>:<container path>。
+   - 容器内数据共享：1.将容器挂载到一个目录；2.volume container提供volume的容器
 
-##### 2.相关操作
+##### 常用命令
 
 ```bash
-# 创建
-$ docker volume create [OPTIONS] [VOLUME] 
-# 查看
-$ docker volume inspect [OPTIONS] VOLUME [VOLUME...] 
-# 挂载
-$ docker run -v 宿主机目录:容器目录
-# 删除
-$ docker volume rm [OPTIONS] VOLUME [VOLUME...] 
-
-# 启动一个容器命名为nginx，随机分配端口，并将当前目录和容器/user/share/nginx/html作映射（双向同步）
-$ docker run --name nginx -d -v $PWD:/user/share/nginx/html -P nginx:alpine
-# 在映射文件后面加ro，表示宿主机只有读的权限
-$ docker run --name nginx -d -v $PWD:/user/share/nginx/html:ro -P nginx:alpine
-# 实际中，常用数据卷和容器文件进行映射,如果宿主机有myvolume数据卷直接进行映射，若是没有，创建myvolume并映射
-$ docker run --name nginx -d -v myvolume:/user/share/nginx/html:ro -P nginx:alpine
+# 容器与host之间复制数据，也可以直接通过linux的cp命令
+docker cp 文件 容器ID:指定目录
+docker volume ls	# 查看容器使用的docker managed volume
+docker volume rm ID	# 删除volume
 ```
 
+#### 容器进阶知识
 
+1. multi-host
+2. 容器网络
+3. 监控
+4. 数据管理
+5. 管理日志
 
-#### 八、docker compose
+#### Docker Machine解决方案
+
+容器在多个host启动、运行、停止和销毁，相关容器会通过网络相互通信。Docker Machine可以批量安装和配置docker host
+
+官方安装文档在https://docs.docker.com/machine/install-machine/
+
+#### 容器网络
+
+跨主机网络方案包括：（1）docker原生的overlay和macvlan;（2）第三方方案：常用的包括flannel、weave和calico
+
+##### overlay
+
+Docker提供了overlay driver，使用户可以创建基于VxLAN的overlay网络。VxLAN可将二层数据封装到UDP进行传输，VxLAN提供与VLAN相同的以太网二层服务，但是拥有更强的扩展性和灵活性。
+
+##### macvlan
+
+macvlan本身是linxu kernel模块，其功能是允许同一个物理网卡配置多个MAC地址，即多个interface，每个interface可以配置自己的IP。macvlan本质上是一种网卡虚拟化技术
+
+#### 日志管理
+
+在开源的日志管理方案中，最出名的莫过于ELK了。ELK是三个软件的合称：Elasticsearch、Logstash、Kibana
+
+#### docker compose
 
 作用：同时启动多个容器
 
@@ -449,7 +348,7 @@ $ docker run --name nginx -d -v myvolume:/user/share/nginx/html:ro -P nginx:alpi
   docker-compose -p my_project down # 删除容器、网络...
   ```
 
-#### 九、Docker Swarm
+#### Docker Swarm
 
 ##### 1.Swarm manager
 
