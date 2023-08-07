@@ -88,9 +88,4 @@ request.post(url=url1, data=data, cookie=response.cookies)	# response.cookies获
               return requests.post(url=url, data=data, headers=headers, json=json)
   ```
 
-  
-
-```python
-
-```
 
