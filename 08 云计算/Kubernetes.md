@@ -264,6 +264,174 @@ kubectl apply每次更新应用时，Kubernetes都会记录下当前的配置，
 
 #### 健康检查
 
+- 默认的健康检查
+
+  每个容器启动时都会执行一个进程，此进程由Dockerfile的CMD或ENTRYPOINT指定。如果进程退出时返回码非零，则认为容器发生故障，Kubernetes就会根据restartPolicy重启容器。
+
+- Liveness探测
+
+  让用户可以自定义判断容器是否健康的条件。如果探测失败，Kubernetes就会重启容器。
+
+- Readiness探测
+
+  告诉Kubernetes什么时候可以将容器加入到Service负载均衡池中，对外提供服务。
+
+#### 数据管理
+
+##### Volume
+
+本质上，Kubernetes Volume是一个目录，这一点与Docker Volume类似。Kubernetes Volume也支持多种backend类型，包括emptyDir、hostPath、GCE Persistent Disk、AWS Elastic Block Store、NFS、Ceph等。
+
+- emptyDir
+
+  emptyDir是最基础的Volume类型，是Host上的一个空目录。
+
+  emptyDir Volume的生命周期与Pod一致。
+
+  其优点是能够方便地为Pod中的容器提供共享存储，不需要额外的配置。它不具备持久性，如果Pod不存在了，emptyDir也就没有了。
+
+- hostPath
+
+  hostPath Volume的作用是将Docker Host文件系统中已经存在的目录mount给Pod的容器。
+
+  大部分应用都不会使用hostPath Volume，因为这实际上增加了Pod与节点的耦合，限制了Pod的使用。
+
+  hostPath的持久性比emptyDir强。不过一旦Host崩溃，hostPath也就无法访问了。
+
+- 外部Storage Provider
+
+##### PersistentVolume & PersistentVolumeClaim
+
+PersistentVolume（PV）是外部存储系统中的一块存储空间，由管理员创建和维护。与Volume一样，PV具有持久性，生命周期独立于Pod。
+
+PersistentVolumeClaim （PVC）是对PV的申请（Claim）。PVC通常由普通用户创建和维护。需要为Pod分配存储资源时，用户可以创建一个PVC，指明存储资源的容量大小和访问模式（比如只读）等信息，Kubernetes会查找并提供满足条件的PV。
+
+#### Secret & Configmap
+
+应用启动过程中可能需要一些敏感信息，比如访问数据库的用户名、密码或者密钥。将这些信息直接保存在容器镜像中显然不妥，Kubernetes提供的解决方案是Secret。
+
+##### 创建Secret
+
+1. 通过--from-literal
+
+   ```bash
+   # 每个--from-literal对应一个信息条目
+   kubectl create secret generic mysercret --from-literal=username=admin --from-literal=password=123456
+   ```
+
+2. 通过--from-file
+
+   ```bash
+   # 每个文件内容对应一个信息条目
+   echo -n admin > ./username
+   echo -n 123456 > ./password
+   kubectl create secret generic mysercret --from-file=./username --from-file=./password
+   ```
+
+3. 通过--from-env-file
+
+   ```bash
+   # 文件env.txt中每行Key=Value对应一个信息条目
+   cat << EOF >> env.txt
+   username=admin
+   password=123456
+   EOF
+   kubectl create secret generic mysercret --from-env-file=env.txt
+   ```
+
+4. 通过YAML配置文件，执行kubectl apply创建Secret
+
+   ```bash
+   # yaml文件内容，文件中的敏感数据必须是通过base64编码后的结果（echo -n admin | base64）
+   apiVersion: v1
+   kind: Secret
+   metadata:
+   	name: mysercret
+   data:
+   	username: YWRtaW4=
+   	password: MTIzNDU2
+   ```
+
+##### 查看sercet
+
+```bash
+kubectl get secret mysercret	# 查看存在的secret
+kubectl describe secret mysercret	# 查看条目的Key
+kubectl edit secret mysecret	# 查看条目的Value
+echo -n 条目的value | base64 --decode	# 通过base64将Value反编码
+```
+
+##### pod中使用secret
+
+1. Volume方式
+   - ①定义volume foo，来源为secret mysecret
+   - ②将foo mount到容器路径/etc/foo，可指定读写权限为readOnly。
+2. 自定义存放数据的文件名
+3. 环境变量方式
+
+注：环境变量读取Secret很方便，但无法支撑Secret动态更新。
+
+Secret可以为Pod提供密码、Token、私钥等敏感数据；对于一些非敏感数据，比如应用的配置信息，则可以用ConfigMap。ConfigMap的创建和使用方式与Secret非常类似，主要的不同是数据以明文的形式存放。与Secret一样，ConfigMap也支持四种创建方式
+
+#### Helm包
+
+Kubernetes的包管理器
+
+##### Heml架构
+
+Helm有两个重要的概念：chart和release。
+
+- chart是创建一个应用的信息集合，包括各种Kubernetes对象的配置模板、参数定义、依赖关系、文档说明等。
+
+- release是chart的运行实例，代表了一个正在运行的应用。
+
+Helm包含两个组件：Helm客户端和Tiller服务器
+
+- Helm客户端负责管理chart
+- Tiller服务器负责管理release
+
+##### 使用Helm
+
+```bash
+helm search	# 查看当前可安装的chart
+helm repo list	# 查看仓库列表(默认仓库：stable和local)
+helm install stable/mysql	# 安装chart即可安装mysql
+```
+
+##### chart目录结构
+
+- Chart.yaml：描述chart的概要信息
+
+- README.md：chart的使用文档，此文件为可选
+
+- LICENSE：chart的许可信息，此文件为可选
+
+- requirements.yaml：chart可能依赖其他的chart，这些依赖关系可通过requirements.yaml指定
+
+- values.yaml：提供了chart在安装时根据参数进行定制化配置
+
+- templates目录：各类Kubernetes资源的配置模板都放置在这里。Helm会将values.yaml中的参数值注入模板中，生成标准的YAML配置文件。
+
+  - NOTES.txt：chart的简易使用文档
+
+  - secrets.yaml
+
+    - {{ template "mysql.fullname" . }}：引用一个子模板mysql.fullname，这个子模板是在templates/_helpers.tpl文件中定义的
+
+    - Chart和Release是Helm预定义的对象，每个对象都有自己的属性，可以在模板中使用
+
+      ```bash
+      helm install stable/mysql -n my	# 安装chart
+      那么：
+      {{ .Chart.Name }}的值为mysql
+      {{ .Chart.Version }}的值为0.3.0
+      {{ .Release.Name }}的值为my
+      {{ .Release.Service }}始终取值为Tiller
+      {{ template "mysql.fullname".}}计算结果为my-mysql
+      ```
+
+    - Values也是预定义的对象，代表的是values.yaml文件。
+
 #### Kubernetes常用命令
 
 ```bash
