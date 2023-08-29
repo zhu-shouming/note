@@ -290,7 +290,32 @@ def test_login(data):
    @pytest.mark.run(order=x)	# x是正整数，如x为0表示第一个执行
    ```
 
+##### 十一、pytest钩子函数
 
+###### pytest_addoption
+
+需求：不同的环境指定不同的系统配置。
+
+pytest_addoption允许用户自定义命令行参数，方便用户通过命令行参数的形式给pytest传递不同参数进行不同场景测试
+
+```python
+def pytest_addoption(parser):
+    parser.addoption(name="--configfile", 
+                     action="store", 
+                     default="config/config.py", 
+                     help="指定环境配置文件"
+    )
+# 使用
+pytest 测试用例	# 运行测试用例使用default="config/config.py"定义的默认参数值
+pytest --configfile hello 测试用例	# 使用hello为参数值
+```
+
+参数说明：
+
+- name：自定义命令行参数的名字，pytestconfig.getoption("--configfile")获取默认参数值
+- action：命令行中采取的基本操作类型，action=‘store’只存储参数的值
+- default：默认参数值
+- help：当前参数简要说明
 
 
 
