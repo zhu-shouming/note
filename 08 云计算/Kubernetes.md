@@ -379,16 +379,26 @@ Kubernetes的包管理器
 
 ##### Heml架构
 
-Helm有两个重要的概念：chart和release。
+helm-Kubernetes的包管理器。每个成功的软件平台都有一个优秀的打包系统，比如Debian、Ubuntu的apt，Red Hat、CentOS的yum。Helm则是Kubernetes上的包管理器。
+
+Helm有两个重要的概念：chart和release
 
 - chart是创建一个应用的信息集合，包括各种Kubernetes对象的配置模板、参数定义、依赖关系、文档说明等。
-
 - release是chart的运行实例，代表了一个正在运行的应用。
+
+Helm是包管理工具，这里的包就是指的chart。Helm能够：
+
+- 从零创建新chart
+- 与存储chart的仓库交互，拉取、保存和更新chart
+- 在Kubernetes集群中安装和卸载release
+- 更新、回滚和测试release
 
 Helm包含两个组件：Helm客户端和Tiller服务器
 
 - Helm客户端负责管理chart
 - Tiller服务器负责管理release
+
+![img](截图/helm_1.png)
 
 ##### 使用Helm
 
@@ -400,13 +410,7 @@ helm install stable/mysql	# 安装chart即可安装mysql
 
 ##### chart目录结构
 
-- Chart.yaml：描述chart的概要信息
-
-- README.md：chart的使用文档，此文件为可选
-
-- LICENSE：chart的许可信息，此文件为可选
-
-- requirements.yaml：chart可能依赖其他的chart，这些依赖关系可通过requirements.yaml指定
+- Chart.yaml：描述chart的概要信息，name和version是必填项，其他都是可选项。
 
 - values.yaml：提供了chart在安装时根据参数进行定制化配置
 
@@ -414,23 +418,36 @@ helm install stable/mysql	# 安装chart即可安装mysql
 
   - NOTES.txt：chart的简易使用文档
 
-  - secrets.yaml
+  - deployment.yaml
 
-    - {{ template "mysql.fullname" . }}：引用一个子模板mysql.fullname，这个子模板是在templates/_helpers.tpl文件中定义的
-
-    - Chart和Release是Helm预定义的对象，每个对象都有自己的属性，可以在模板中使用
+    - {{ template "mysql.fullname" . }}：引用一个子模板(templates/_helpers.tpl)定义的mysql.fullname，**Chart**和**Release**是Helm预定义的对象，每个对象都有自己的属性，可以在模板中使用
 
       ```bash
-      helm install stable/mysql -n my	# 安装chart
-      那么：
+      # 在templates/_helpers.tpl定义
       {{ .Chart.Name }}的值为mysql
-      {{ .Chart.Version }}的值为0.3.0
       {{ .Release.Name }}的值为my
-      {{ .Release.Service }}始终取值为Tiller
+      # 那在deployment.yaml引入
       {{ template "mysql.fullname".}}计算结果为my-mysql
       ```
 
     - Values也是预定义的对象，代表的是values.yaml文件。
+
+- README.md：chart的使用文档，此文件为可选
+
+- LICENSE：chart的许可信息，此文件为可选
+
+- requirements.yaml：chart可能依赖其他的chart，这些依赖关系可通过requirements.yaml指定
+
+##### 定制自己的chart
+
+1. 创建chart myapp
+   - **helm create myapp**：创建目录myapp，并生成各类chart文件。在此基础上开发自己的chart
+   - 新建chart默认包含一个nginx应用示例
+2. 打包安装chart
+   - **helm lint myapp**：检查chart语法正确性
+   - **helm package myapp**：打包自定义的chart
+   - **helm install myapp.tgz**：通过tar包安装chart
+   - helm install --dry-run myapp --debug：模拟安装chart，并输出每个模板生成的YAML内容
 
 #### Kubernetes常用命令
 

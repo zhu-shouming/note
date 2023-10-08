@@ -1,14 +1,22 @@
 #### 容器生态系统
 
-容器核心技术：容器在单个host上运行起来的那些技术
+**容器核心技术**：容器在单个host上运行起来的那些技术
+
 1. 容器规范：runtime spec和image format spec
-2. 容器runtime：runtime需要和操作系统kernel紧密协作，为容器提供运行环境。lxc、runc和rkt是目前主流的三种容器runtime
+2. 容器runtime：runtime需要和操作系统kernel紧密协作，为容器提供运行环境。lxc、runc(docker默认的runtime)和rkt是目前主流的三种容器runtime
 3. 容器管理工具：lxd是lxc对应管理工具；runc管理工具是docker engine，docker engine包含后台deamon和cli两个部分；rkt的管理工具是rkt cli
-4. 容器定义工具：允许用户定义容器的内容和属性，docker image是Docker容器的模板；dockerfile包含若干命令的文本文件，可通过这些命令创建docker iamge；ACI与docker image类似，由CoreOS开发的rkt容器的image格式。
-5. Registries：Docker Registry构建私有的Registry；Docker Hub是docker为公众提供的托管Registry；Quay.io与Docker Hub类似。
+4. 容器定义工具：允许用户定义容器的内容和属性
+   - docker image是Docker容器的模板
+   - dockerfile包含若干命令的文本文件，可通过这些命令创建docker iamge
+   - ACI与docker image类似，由CoreOS开发的rkt容器的image格式。
+5. Registries
+   - Docker Registry构建私有的Registry
+   - Docker Hub是docker为公众提供的托管Registry
+   - Quay.io与Docker Hub类似。
 6. 容器OS：专门运行容器的操作系统。如coreos、atomic、ubuntu core
 
-容器平台技术：让容器作为集群在分布式环境中运行
+**容器平台技术**：让容器作为集群在分布式环境中运行
+
 1. 容器编排引擎：基于容器的应用一般会采用微服务架构，基于微服务的应用实际上是一个动态可伸缩的系统，而容器编排引擎是一种高效的方法来管理容器集群
    - docker swarm是docker开发的容器编排引擎
    - kubernetes是Google领导开大的开源容器编排引擎，同时支持Docker和CoreOS容器
@@ -16,7 +24,8 @@
 2. 容器管理平台：架构在容器编排引擎之上的一个更为通用的平台，抽象了编排引擎的底层实现细节，为用户提供更方便的功能。Rancher和ContainerShip是容器管理平台的典型代表
 3. 基于容器的PaaS：为微服务应用开发人员和公司提供了开发、部署和管理应用的平台，使用户不必关心底层基础设施而专注于应用的开发。Deis、Flynn和Dokku都是开源容器PaaS的代表
 
-容器支持技术
+**容器支持技术**
+
 1. 容器网络：docker network是Docker原生的网络解决方案，还可以采用如flannel、weave和calico
 2. 服务发现：保存容器集群中所有微服务最新的信息，并对外提供API，提供服务查询功能。etcd、consul和zookeeper是服务发现的典型解决方案
 3. 监控：docker ps/top/stats是Docker原生的命令行监控工具。sysdig、cAdvisor/Heapster和Weave Scope是其他开源的容器监控方案
@@ -32,24 +41,34 @@ Docker的核心组件包括：
 
 - Docker服务器：Docker Daemon
 
-  - 配置允许任意IP的客户端连接
-
-    ```bash
-    编辑配置文件/etc/systemd/system/multi-user.target.wants/docker.service，/etc/systemd/system/multi-user.target.wants/docker.service
-    ```
-
-  - 重启Docker daemon
-
-    ```bash
-    systemctl daemon-reload
-    systemctl restart docker
-    ```
+  ```bash
+  # 1.docker daemon是服务器组件，以linux后台服务的方式进行
+  systemctl status docker.service
+  # 2.docker daemon运行在docker host，负责创建、运行、监控、构建、存储镜像，默认配置只能响应本地Host的客户端请求。如果要允许远程客户端请求，需要在配置文件中打开TCP监听
+  编辑配置文件：/etc/systemd/system/multi-user.target.wants/docker.service，在环境变量ExecStart后面添加 -H tcp://0.0.0.0,允许来自任意ip的客户端连接
+  # 3.修改完配置重启docker daemon生效
+  systemctl daemon-reload
+  systemctl restart docker
+  # 4.客户端在命令行里加上-H参数，即可与远程服务器通信
+  docker -H 远程客户端ip info
+  ```
 
 - Docker镜像：Image
+
+  ```bash
+  创建docker容器的模板，镜像有多种生成方法：
+  1.从无到有开始创建镜像
+  2.下载现成的镜像
+  3.在现有镜像上创建新的镜像
+  ```
 
 - Docker镜像仓库：Registry
 
 - Docker容器：Container
+
+  ```bash
+  镜像是软件生命周期的构建和打包阶段，而容器是启动、运行阶段
+  ```
 
 #### Docker镜像
 
