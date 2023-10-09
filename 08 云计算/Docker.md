@@ -72,37 +72,50 @@ Docker的核心组件包括：
 
 #### Docker镜像
 
-##### 镜像的分层结构
-
-最大的好处是共享资源，容器的修改会被限制在单个容器内，镜像内容不会被修改
+- base镜像：1.不依赖其他镜像，从scratch构建；2.其他镜像可以之为基础进行扩展。base镜像通常是各种linux发行版的docker镜像，如Ubuntu Debian，Centos等。
+- 镜像分层结构：构建的镜像是从base镜像一层一层叠加生成。每安装一个软件就在现有镜像的基础上增加一层。最大的好处是**共享资源**
 
 ##### 构建镜像
 
-docker提供了两种构建镜像的方法：docker commit命令和Dockerfile构建文件
+docker提供了两种构建镜像的方法：
 
-###### docker commit
+1. docker commit命令
 
-1.运行容器;2.安装;3.保存为新镜像
+2. Dockerfile构建文件
 
-###### Dockerfile构建文件
+docker commit命令构建新建井包含三个步骤：
+
+1. 运行容器
+2. 修改容器
+3. 保存为新镜像：docker commit CONTAINER [REPOSITORY[:TAG]]
+
+Dockerfile构建镜像
 
 1. 准备Dockerfile文件
 
 2. **docker build -t 镜像名:tag -f dockerfile文件路径**
 
-   注：build context为当前执行构建所在目录，该目录下的所有文件和子目录都会被发送给Docker daemon。不要将多余文件放到build context，特别不要把 /、/usr作为build context，否则构建过程会相当缓慢甚至失败。
+   注：当dockerfile文件路径为`.`时，指明build context为当前目录。不要将多余文件放到build context，特别不要把 /、/usr作为build context，否则构建过程会相当缓慢甚至失败。
 
-###### Dockerfile文件命令详解
+##### Dockerfile常见指令
 
-- FROM xxx：将xxx作为base镜像
+- FROM xxx：指定base镜像
 
-- MAINTAINER:设置镜像的作者，可以是任意字符串
+- MAINTAINER：设置镜像的作者，可以是任意字符串
 
-- COPY 文件 指定目录：将文件从build context复制到镜像
+- COPY：将文件从build context复制到镜像。COPY支持两种形式：
 
-- ADD 文件 指定目录：从build context复制文件到镜像，同的是，如果src是归档文件（tar、zip、tgz、xz等），文件会被自动解压到dest
+  1. COPY src dest
+  2. COPY ["src","dest"]
+
+- ADD：与COPY类似，不同的是，如果src是归档文件（tar,zip,tgz等），文件会自动到解压到dest 
 
 - ENV：设置环境变量，环境变量可被后面的指令使用
+
+  ```bash
+  ENV VERSION 1.6
+  RUN apt-get install -y mypackage=$VERSION
+  ```
 
 - EXPOSE：指定容器中的进程会监听某个端口，Docker可以将该端口暴露出来
 
@@ -123,21 +136,32 @@ docker提供了两种构建镜像的方法：docker commit命令和Dockerfile构
   CMD ["/hello"]	# 启动容器时执行hello文件
   ```
 
-###### RUN vs CMD vs ENTRYPOINT
+RUN vs CMD vs ENTRYPOINT区别
 
-RUN：执行命令并创建新的镜像层，RUN经常用于安装软件包
+- RUN：执行命令并创建新的镜像层，RUN经常用于安装软件包
+- CMD：设置容器启动后默认执行的命令及其参数，但CMD能够被docker run后面跟的命令行参数替换。
+- ENTRYPOINT配置容器启动时运行的命令
 
-CMD：设置容器启动后默认执行的命令及其参数，但CMD能够被docker run后面跟的命令行参数替换。
+Shell和Exec格式：
 
-CMD：设置容器启动后默认执行的命令及其参数，但CMD能够被docker run后面跟的命令行参数替换。
+都可以使用两种方式指定RUN、CMD和ENTRYPOINT要运行的命令
 
-运行命令格式：
+- shell格式：<instruction> <command>，当指令执行时，shell格式底层会调用 /bin/sh -c [command]
 
-- shell格式：`<instruction> <command>`，当指令执行时，shell格式底层会调用 /bin/sh -c [command]
+  ```bash
+  RUN apt-get install python3
+  CMD echo "Hello world"
+  ENTRYPOINT echo "Hello world"
+  ```
 
-- Exec格式:``<instruction> ["executable", "param1", "param2",...]`，当指令执行时，会直接调用 [command]，不会被shell解析
+- Exec格式：<instruction> ["executable", "param1", "param2",...]，当指令执行时，会直接调用 [command]，不会被shell解析
 
-  注：CMD和ENTRYPOINT推荐使用Exec格式，因为指令可读性更强，更容易理解。RUN则两种格式都可以
+  ```bash
+  ENV name world
+  ENTRYPOINT ["/bin/sh","-c","echo Hello $world"]
+  ```
+
+注：CMD和ENTRYPOINT推荐使用Exec格式，因为指令可读性更强，更容易理解。RUN则两种格式都可以
 
 ##### 分发镜像
 
