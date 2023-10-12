@@ -139,8 +139,14 @@ Dockerfile构建镜像
 RUN vs CMD vs ENTRYPOINT区别
 
 - RUN：执行命令并创建新的镜像层，RUN经常用于安装软件包
-- CMD：设置容器启动后默认执行的命令及其参数，但CMD能够被docker run后面跟的命令行参数替换。
+- CMD：设置容器启动后默认执行的命令及其参数
+  1. 如果docker run指定了其他命令，CMD指定的默认名了将被忽略。
+  2. 如果dockerfile中有多个CMD指令，只有最后一个CMD有效。
+  3. CMD ["param1","param2"]为ENTRYPOINT提供额外参数时，此时ENTRYPOINT必须使用Exec格式
 - ENTRYPOINT配置容器启动时运行的命令
+  1. ENTRYPOINT指令可让容器以应用程序或者服务的形式运行
+  2. ENTRYPOINT指定要执行的命令和参数不会被忽略，一定会被执行，即使运行docker run时制定了其他命令
+  3. ENTRYPOINT的shell格式会忽略任何CMD或docker run提供的参数
 
 Shell和Exec格式：
 
@@ -163,28 +169,40 @@ Shell和Exec格式：
 
 注：CMD和ENTRYPOINT推荐使用Exec格式，因为指令可读性更强，更容易理解。RUN则两种格式都可以
 
-##### 分发镜像
+##### 搭建私有registry
 
-如何在多个Docker Host使用镜像
+1. 启动registry容器
 
-1. 用相同的Dockerfile在其他host构建镜像。
-2. 将镜像上传到公共Registry（比如Docker Hub）, Host直接下载使用。
-3. 搭建私有的Registry供本地Host使用。
+   ```bash
+   docker run -d -p 5000:5000 --restart always --name registry registry:2
+   # 验证安装：使用浏览器访问http://<your-server-ip>:5000/v2/_catalog
+   ```
 
-搭建私有registry：https://docs.docker.com/registry/configuration/
+2. 上传镜像到registry
+
+   ```bash
+   # 通过docker tag重命名镜像，使之与registry匹配(<your-server-ip>:5000/<your-image>:<tag>上传到指定镜像仓库的固定格式)
+   docker tag <your-image>:<tag> <your-server-ip>:5000/<your-image>:<tag>
+   # 上传镜像
+   docker pull <your-server-ip>:5000/<your-image>:<tag>
+   ```
+
+参开文档：https://docs.docker.com/registry/configuration/
 
 ##### 镜像操作常用命令
 
 ```bash
 docker images	# 显示镜像列表
+docker rmi 镜像ID	# 删除docker host中的镜像，如果一个镜像对应多个tag，只有当最后一个tag被删除时，镜像才真正删除
 docker history 镜像ID	# 显示镜像构建历史
+docker search 镜像名称:tag	# 搜索Docker Hub中的镜像
 docker commit [OPTIONS] CONTAINER [REPOSITORY[:TAG]]	# 从容器创建新镜像
 docker build -t 镜像名:tag -f dockerfile文件路径	# 从Dockerfile构建镜像
 docker tag SOURCE_IMAGE[:TAG] TARGET_IMAGE[:TAG]	# 给镜像打tag
 docker pull [选项] [Docker镜像地址[:端口号]/] 仓库名[:标签]	# 从registry下载镜像
 docker push	[选项] [Docker镜像地址[:端口号]/] 仓库名[:标签]	# 将镜像上传到registry
 docker image rm [选项] <镜像1> [<镜像2> ...]	# 删除Docker host中的镜像
-docker search 镜像名称:tag	# 搜索Docker Hub中的镜像
+
 docker save -o mycontainer.tar mycontainer:latest	# 导出为压缩文件
 docker load -i mycontainer.tar	# 导入压缩文件
 ```
@@ -215,12 +233,28 @@ docker load -i mycontainer.tar	# 导入压缩文件
    --rm	# 如果容器为exit状态，会自动删除创建的容器
    --net	# 指定要加入的网络
    -v	# 将本地文件和容器文件进行映射
-   -m	# 设置内存的使用限额，只指定 -m而不指定--memory-swap，那么--memory-swap默认为-m的两倍
-   --memory-swap	# 设置内存+swap的使用限额
+   
+   # 限制容器对内存的使用，与操作系统类似，容器可使用的内存包括两部分：物理内存和sqap。
+   -m或-memory：设置内存的使用限额。只指定-m而不指定--memory-swap，那么--memory-swap默认为-m的两倍
+   --memory-swap：设置内存+swap的使用限额
    --vm 1	# 启动1个内存工作线程
    --vm-bytes 280M	# 每个线程分配280MB内存
-   -c或 --cpu-shares	# 设置容器使用CPU的权重。如果不指定，默认值为1024。
+   
+   # 限制容器对CPU的使用
+   -c或--cpu-shares：docker可以通过-c或--cpu-shares设置容器使用CPU的权重。如果不指定，默认为1024
+   
+   # 限制容器的Black IO(磁盘的读写)
+   --blkio-weight：docker可通过设置权重、限制bps和iops的方式控制容器读写磁盘的带宽，默认为500
    ```
+
+进入容器的两种方法：
+
+1. docker attach
+   - 直接进入容器启动命令终端，不会启动新的进程
+   - 如果想直接在终端中查看启动命令的输出，用attach；其他情况使用exec
+2. docker exec
+   - exec在容器中打开新的终端，并且可以启动新的进程
+     - docker exec -it <container> bash|sh 是执行exec最常用的方式
 
 ##### 容器操作常用命令
 
@@ -230,6 +264,7 @@ docker logs -f 容器ID	# 查看容器运行日志，-f表示实时查看
 docker kill/stop/start/restart 容器ID	# 快速停止/停止/启动/重启容器
 docker pause/unpause 容器ID	# 暂停/恢复运行容器
 docker create/rm 容器ID	# 创建/删除容器
+docker rm -v $(docker ps -aq -f status=exited)	# 批量删除所有已经退出的容器
 docker history 容器ID # 查看容器运行的历史记录
 docker inspect 容器ID	# 查看容器的配置和状态信息
 docker cp xx.html ContainID://user/share/nginx/xx.html	# 拷贝本机xx.html到容器下
