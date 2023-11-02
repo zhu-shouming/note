@@ -1,0 +1,88 @@
+# 测试用例：上传应用包
+test_upload_package:
+  -
+    title: "普通用户 -- 上传前端应用包到私有仓库"
+    package_type: "web"
+    file_path: "/testplat/images/front80/vue-demo-three.zip"
+  -
+    title: "普通用户 -- 上传war包到私有仓库"
+    package_type: "war"
+    file_path: "/testplat/images/war8080/demo-v1.war"
+  -
+    title: "普通用户 -- 上传helm包到私有仓库"
+    package_type: "helm"
+    file_path: "/testplat/images/helm20222/appa.zip"
+  -
+    title: "普通用户 -- 上传jar包到私有仓库"
+    package_type: "jar"
+    file_path: "/testplat/images/jar_with_springcloud20111/application-A-V1.0.0-exec.jar"
+
+
+# 测试用例：申请发布应用包到公有仓库
+test_apply_for_publishing_package_to_public:
+  -
+    title: "普通用户 -- 申请发布前端应用包到公有仓库"
+    package_type: "web"
+    file_path: "/testplat/images/front80/vue-demo-three.zip"
+  -
+    title: "普通用户 -- 申请发布war包到公有仓库"
+    package_type: "war"
+    file_path: "/testplat/images/war8080/demo-v1.war"
+  -
+    title: "普通用户 -- 申请发布helm包到公有仓库"
+    package_type: "helm"
+    file_path: "/testplat/images/helm20222/appa.zip"
+  -
+    title: "普通用户 -- 申请发布jar包到公有仓库"
+    package_type: "jar"
+    file_path: "/testplat/images/jar_with_springcloud20111/application-A-V1.0.0-exec.jar"
+
+
+# 测试用例：部署war包应用
+test_apply_for_deploying_package_of_war:
+  -
+    title: "普通用户 -- 申请从应用仓库部署war包应用"
+    package_type: "war"
+    file_path: "/testplat/images/war8080/demo-v1.war"
+    engine_type: "others"
+    deploy_type: "传统方式部署"
+    resource_type: "容器集群"
+    app_type: "无状态应用"
+    cluster_info:
+      cluster_type: "独享集群"
+    repository: "私有"
+    container_spec:
+      cpu_request: "0.5"
+      mem_request: "512Mi"
+      cpu_limit: "1"
+      mem_limit: "1024Mi"
+    tomcat_version: "8.5"
+    jdk_version: "1.8"
+    # 服务访问控制
+    svc_access_control:
+      dns_policy: "集群外访问"
+      targetPort: 8080
+      port: 18080
+    # 应用相关信息：所在IP，登录的用户名和密码，对外提供的访问接口，接口返回的信息
+    app_svc_info:
+      app_uri: "/demo-v1/"
+      app_message: "*********** v1 ***********"
+
+
+
+# 测试用例：删除有多个版本的应用包
+test_delete_package_with_more_visions:
+  -
+    title: "普通用户 -- 删除有多个版本的应用包"
+    package_type: "web"
+    file_path: "/testplat/images/front80/vue-demo-three.zip"
+    # 版本个数
+    version_numbers: 3
+
+##############   初始化   ##############
+
+setup_upload_package:
+  -
+    title: "上传jar包到私有仓库"
+    package_type: "jar"
+    file_path: "/testplat/images/jar_with_springcloud20111/application-A-V1.0.0-exec.jar"

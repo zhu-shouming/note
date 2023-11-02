@@ -209,11 +209,6 @@ docker load -i mycontainer.tar	# 导入压缩文件
 
 #### Docker容器
 
-##### 容器底层技术
-
-- cgroup全称Control Group。Linux操作系统通过cgroup可以设置进程使用CPU、内存和IO资源的限额。在 /sys/fs/cgroup/cpu/docker、/sys/fs/cgroup/memory/docker和 /sys/fs/cgroup/blkio/docker中分别保存的是cpu相关、内存以及Block IO的cgroup配置
-- namespace实现了容器间资源的隔离，Linux使用了6种namespace，分别对应6种资源：Mount、UTS、IPC、PID、Network和User
-
 ##### 运行容器
 
 1. CMD执行令
@@ -256,6 +251,11 @@ docker load -i mycontainer.tar	# 导入压缩文件
    - exec在容器中打开新的终端，并且可以启动新的进程
      - docker exec -it <container> bash|sh 是执行exec最常用的方式
 
+##### 容器底层技术
+
+- cgroup全称Control Group。Linux操作系统通过cgroup可以设置进程使用CPU、内存和IO资源的限额。在 /sys/fs/cgroup/cpu/docker、/sys/fs/cgroup/memory/docker和 /sys/fs/cgroup/blkio/docker中分别保存的是cpu相关、内存以及Block IO的cgroup配置
+- namespace实现了容器间资源的隔离，Linux使用了6种namespace，分别对应6种资源：Mount、UTS、IPC、PID、Network和User
+
 ##### 容器操作常用命令
 
 ```bash
@@ -276,18 +276,20 @@ docker stats ContainID # 查看容器的资源信息
 
 docker安装时会自动在host上创建三个网络
 
-1. none网络：什么都没有的网络，容器创建时，可以通过--network=none指定使用none网络。一般用于安全性要求高并且不需要联网的应用
-2. host网络：容器的网络配置与host完全一样。可以通过 --network=host指定使用host网络。
-3. bridge网络：Docker安装时会创建一个命名为docker0的Linux bridge。如果不指定--network，创建的容器默认都会挂到docker0上。
+- none网络：什么都没有的网络，挂载这个网络下的容器除了lo，没有其他任何网卡。容器创建时，可以通过--network=none指定使用none网络。一般用于安全性要求高并且不需要联网的应用
+
+- host网络：连接到host网络的容器共享Docker Host的网络线，容器的网络配置与host完全一样。可以通过 --network=host指定使用host网络。
+
+- bridge网络：Docker安装时会创建一个命名为docker0的Linux bridge。如果不指定--network，创建的容器默认都会挂到docker0上。
 
 除了自动创建的网络，用户可以根据业务需要创建user-defined网络
 
-4. user-defined网络：有三种网络驱动，bridge、overlay和macvlan，overlay和macvlan用于创建跨主机的网络
+- user-defined网络：有三种网络驱动，bridge、overlay和macvlan，overlay和macvlan用于创建跨主机的网络
 
 ##### 容器间通信
 
 1. IP通信：两个容器要能通信，必须要有属于同一个网络的网卡。不同网络的容器间通信，通过docker network connect将现有容器加入到指定网络
-2. Docker DNS Server：从Docker 1.10版本开始，docker daemon实现了一个内嵌的DNS server，使容器可以直接通过“容器名”通信。**使用docker DNS有个限制：只能在user-defined网络中使用。**
+2. Docker DNS Server：从Docker 1.10版本开始，docker daemon实现了一个内嵌的DNS server，使容器可以直接通过“容器名”通信。只要在启动时用--name为容器命名就可以了。**使用docker DNS有个限制：只能在user-defined网络中使用。**默认的bridge网络是无法使用DNS的。
 3.  joined容器：先创建一个容器，名字为web1。然后创建另一个容器并通过 **--network=container:web1**指定joined容器为web1。这两个容器共享相同的网络栈
 
 ##### 常见命令
@@ -295,13 +297,14 @@ docker安装时会自动在host上创建三个网络
 ```bash
 docker network ls	# 查看host有的网络类型
 docker network inspect bridge	# bridge网络的配置信息
-docker network create my_net	# 创建网络(默认bridge驱动)
+docker network create --driver bridge my_net	# 创建bridge类型网络my_net
 # 创建网络指定IP网段。使用--subnet和--gateway 参数
 docker network create --subnet 172.22.16.0/24 --gateway 172.22.16.1 my_net
 # 运行容器指定网络及分配IP。使用--network和--ip参数
 docker run -it --network=my_net --ip 172.22.16.8 my_net	
 # 不同网络的容器间通信使用docker network connect命令实现
-docker network connect my_net 容器ID	
+docker network connect my_net 容器ID	# 把容器加入网卡，和该网卡中的容器实现ip通信
+docker run -it --network=container:web1 httpd	# 通过join容器web1，实现web1和httpd通信
 ```
 
 #### Docker存储

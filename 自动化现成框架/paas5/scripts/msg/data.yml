@@ -1,0 +1,166 @@
+mysql_and_redis:
+  - mysql_user: os_admin
+    mysql_pwd: H3C_Cloud0S#PaaS@CTT2019
+    mysql_port: 3306
+    redis_port: 6379
+    redis_pwd: H3C_Cloud0S_PaaS_CTT2020
+create_springcloud_msg:
+  -
+    title: "新建spring cloud微服务引擎 默认参数"
+    describe: ""     #描述
+    engineIp: ""    #访问IP
+    version: "Finchley.SR4"   #版本
+    discover:
+      component: "discover"             # 注册中心
+      duplicate: 1        #
+      reqCPU: "0.2"
+      reqMemory: "50Mi"
+      limitCPU: "0.5"
+      limitMemory: "512Mi"
+      storageClass: ""  
+  -
+    title: "新建spring cloud微服务引擎, 选择原生组件，Finchley.SR4版本，设置配置中心和API网关"
+    describe: ""     #描述
+    engineIp: ""    #访问IP
+    version: "Finchley.SR4"  
+    discover:
+      duplicate: 1        #
+      reqCPU: "0.2"
+      reqMemory: "50Mi"
+      limitCPU: "0.5"
+      limitMemory: "512Mi"
+      storageClass: ""  
+      component: "discover"
+    config:
+      duplicate: 1        #
+      reqCPU: "0.2"
+      reqMemory: "50Mi"
+      limitCPU: "0.5"
+      limitMemory: "512Mi"
+      storageClass: ""  
+    gateway:
+      duplicate: 1        #
+      reqCPU: "0.2"
+      reqMemory: "50Mi"
+      limitCPU: "0.5"
+      limitMemory: "512Mi"
+      storageClass: "" 
+  -
+    title: "新建spring cloud微服务引擎---nacos组件 无api网关"
+    describe: ""     #描述
+    engineIp: ""    #访问IP
+    version: "Finchley.SR4"  
+    discover:
+      duplicate: 1        #
+      reqCPU: "0.2"
+      reqMemory: "50Mi"
+      limitCPU: "0.5"
+      limitMemory: "512Mi"
+      storageClass: ""  
+      component: "nacos"
+  -
+    title: "新建spring cloud微服务引擎, 原生组件，Greenwich.SR1版本，设置配置中心和API网关"
+    cluster: "default"
+    describe: ""     #描述
+    engineIp: ""    #访问IP
+    version: "Greenwich.SR1"  
+    discover:
+      duplicate: 1        #
+      reqCPU: "0.2"
+      reqMemory: "50Mi"
+      limitCPU: "0.5"
+      limitMemory: "512Mi"
+      storageClass: ""  
+      component: "discover"
+    config:
+      duplicate: 1        #
+      reqCPU: "0.2"
+      reqMemory: "50Mi"
+      limitCPU: "0.5"
+      limitMemory: "512Mi"
+      storageClass: ""  
+    gateway:
+      duplicate: 1        #
+      reqCPU: "0.2"
+      reqMemory: "50Mi"
+      limitCPU: "0.5"
+      limitMemory: "512Mi"
+      storageClass: "" 
+  -
+    title: "新建spring cloud微服务引擎, 选择原生组件、Hoxton.SR8版本，设置配置中心和API网关"
+    describe: ""     #描述
+    engineIp: ""    #访问IP
+    version: "Hoxton.SR8"  
+    discover:
+      duplicate: 1        #
+      reqCPU: "0.2"
+      reqMemory: "50Mi"
+      limitCPU: "0.5"
+      limitMemory: "512Mi"
+      storageClass: ""  
+      component: "discover"
+    config:
+      duplicate: 1        #
+      reqCPU: "0.2"
+      reqMemory: "50Mi"
+      limitCPU: "0.5"
+      limitMemory: "512Mi"
+      storageClass: ""  
+    gateway:
+      duplicate: 1        #
+      reqCPU: "0.2"
+      reqMemory: "50Mi"
+      limitCPU: "0.5"
+      limitMemory: "512Mi"
+      storageClass: "" 
+# #新建dubbo微服务引擎
+create_dubbo_msg:
+  -
+    title: "新建dubbo微服务引擎 zookeeper组件 无配置中心"
+    describe: ""
+    engineIp: ""
+    zookeeper:
+      reqCPU: "0.5"
+      reqMemory: "512Mi"
+      limitCPU: "1"
+      limitMemory: 1024Mi
+      storageClass: auto
+  -
+    title: "新建dubbo微服务引擎, zookeeper组件 有配置中心"
+    describe: ""
+    engineIp: ""
+    zookeeper:
+      reqCPU: "0.5"
+      reqMemory: "512Mi"
+      limitCPU: "1"
+      limitMemory: 1024Mi
+      storageClass: auto
+    config:
+      reqCPU: "0.5"
+      reqMemory: "512Mi"
+      duplicate: 1 
+      limitCPU: "1"
+      limitMemory: 1024Mi
+  - title : "新建dubbo微服务引擎， nacos组件"
+    describe: nacos
+    engineIp: ""
+    nacos:
+      replica: 1
+      reqCPU: "1"
+      reqMemory: "512Mi"
+      limitCPU: "2"
+      limitMemory: 2048Mi
+      storageClass: auto       
+modify_msg_info:
+  - title: "修改微服务引擎名字、访问IP等信息"
+    engineIp: "192.168.12.34"
+    description: "修改后的描述"
+update_component_flavor:
+  - title: 修改微服务引擎组件实例数
+    replicas: 2
+    limit_cpu: "1"
+    limit_mem: "1024Mi"
+  - title: 修改微服务引擎组件cpu、内存限制
+    replicas: 1  
+    limit_cpu: "2"
+    limit_mem: "2048Mi"
