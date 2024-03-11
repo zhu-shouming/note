@@ -1,0 +1,135 @@
+# 测试用例：上传应用包
+test_upload_package:
+-
+  title: "系统管理员 -- 上传前端应用包到公有仓库"
+  package_type: "web"
+  # windows
+  file_path: "E:\\2023\\01 images\\front80\\前端包\\vue-demo-three.zip"
+  repository: "公有"
+-
+  title: "系统管理员 -- 上传war包到公有仓库"
+  package_type: "war"
+  # windows
+  file_path: "E:\\2023\\01 images\\war8080\\demo-v1.war"
+  repository: "公有"
+-
+  title: "系统管理员 -- 上传helm包到公有仓库"
+  package_type: "helm"
+  # windows
+  file_path: "E:\\2023\\01 images\\helm20222\\appa-x86.zip"
+  repository: "公有"
+-
+  title: "系统管理员 -- 上传jar包到公有仓库"
+  package_type: "jar"
+  # windows
+  file_path: "E:\\2023\\01 images\\jar_with_springcloud20111\\application-A-V1.0.0-exec.jar"
+  repository: "公有"
+-
+  title: "系统管理员 -- 上传前端应用包到私有仓库"
+  package_type: "web"
+  # windows
+  file_path: "E:\\2023\\01 images\\front80\\前端包\\vue-demo-three.zip"
+  repository: "私有"
+-
+  title: "系统管理员 -- 上传war包到私有仓库"
+  package_type: "war"
+  # windows
+  file_path: "E:\\2023\\01 images\\war8080\\demo-v1.war"
+  repository: "私有"
+-
+  title: "系统管理员 -- 上传helm包到私有仓库"
+  package_type: "helm"
+  # windows
+  file_path: "E:\\2023\\01 images\\helm20222\\appa-x86.zip"
+  repository: "私有"
+-
+  title: "系统管理员 -- 上传jar包到私有仓库"
+  package_type: "jar"
+  # windows
+  file_path: "E:\\2023\\01 images\\jar_with_springcloud20111\\application-A-V1.0.0-exec.jar"
+  repository: "私有"
+
+# 测试用例：发布应用包到公有仓库
+test_publish_package_to_public:
+  -
+    title: "系统管理员 -- 发布前端应用包到公有仓库"
+    package_type: "web"
+    file_path: "E:\\2023\\01 images\\front80\\前端包\\vue-demo-three.zip"
+  -
+    title: "系统管理员 -- 发布war包到公有仓库"
+    package_type: "war"
+    file_path: "E:\\2023\\01 images\\war8080\\demo-v1.war"
+  -
+    title: "系统管理员 -- 发布helm包到公有仓库"
+    package_type: "helm"
+    file_path: "E:\\2023\\01 images\\helm20222\\appa-x86.zip"
+  -
+    title: "系统管理员 -- 发布jar包到公有仓库"
+    package_type: "jar"
+    file_path: "E:\\2023\\01 images\\jar_with_springcloud20111\\application-A-V1.0.0-exec.jar"
+
+# 测试用例：部署war包应用
+test_deploy_package_of_war:
+  -
+    title: "系统管理员 -- 上传war包到公有仓库并部署"
+    package_type: "war"
+    file_path: "E:\\2023\\01 images\\war8080\\demo-v1.war"
+    repository: "公有"
+    # 应用包信息
+    container_spec:
+      cpu_request: "0.5"
+      mem_request: "512Mi"
+      cpu_limit: "1"
+      mem_limit: "1024Mi"
+    # 服务访问控制
+    svc_access_control:
+      dns_policy: "集群外访问"
+      targetPort: 8080
+      port: 18080
+        # 应用相关信息：所在IP，登录的用户名和密码，对外提供的访问接口，接口返回的信息
+    app_svc_info:
+      app_uri: "/demo-v1/"
+      app_message: "*********** v1 ***********"
+  -
+    title: "系统管理员 -- 上传war包到私有仓库并部署"
+    package_type: "war"
+    file_path: "E:\\2023\\01 images\\war8080\\demo-v1.war"
+    repository: "私有"
+    # 应用包信息
+    container_spec:
+      cpu_request: "0.5"
+      mem_request: "512Mi"
+      cpu_limit: "1"
+      mem_limit: "1024Mi"
+    # 服务访问控制
+    svc_access_control:
+      dns_policy: "集群外访问"
+      targetPort: 8080
+      port: 18080
+    # 应用相关信息：所在IP，登录的用户名和密码，对外提供的访问接口，接口返回的信息
+    app_svc_info:
+      app_uri: "/demo-v1/"
+      app_message: "*********** v1 ***********"
+
+# 测试用例：删除有多个版本的应用包
+test_delete_package_with_more_visions:
+  -
+    title: "系统管理员 -- 删除有多个版本的应用包"
+    package_type: "web"
+    file_path: "E:\\2023\\01 images\\front80\\前端包\\vue-demo-three.zip"
+    # 版本个数
+    version_numbers: 3
+
+##############   初始化   ##############
+
+setup_upload_package:
+  -
+    title: "上传前端包到公有仓库"
+    package_type: "web"
+    file_path: "E:\\2023\\01 images\\front80\\前端包\\vue-demo-three.zip"
+    repository: "公有"
+  -
+    title: "上传jar包到私有仓库"
+    package_type: "jar"
+    file_path: "E:\\2023\\01 images\\jar_with_springcloud20111\\application-A-V1.0.0-exec.jar"
+    repository: "私有"

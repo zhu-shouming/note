@@ -1,0 +1,216 @@
+workload_image:
+  filepath: "/testplat/images/autotest-cce.tar"
+#  filepath: "D:\\02.Projects\\03.PaaS\\99.images\\autotest-cce.tar"
+create_deployment_workload:
+  - title: "新建无状态deployment"
+    type: deployments
+    yaml:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: nginx-test-deploy
+      spec:
+        selector:
+          matchLabels:
+            app: nginx
+        replicas: 1 
+        template:
+          metadata:
+            labels:
+              app: nginx
+          spec:
+            containers:
+            - name: nginx
+              image: os-harbor-svc.default.svc.cloudos:443/library/autotest-cce:v1
+              ports:
+              - containerPort: 80
+              resources:
+                limits:
+                  cpu: 500m
+                  memory: 200Mi
+                requests:
+                  cpu: 100m
+                  memory: 64Mi
+  - title: "新建statefulset工作负载"
+    type: statefulsets
+    yaml:
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: web-statefulset
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: web
+        template:
+          metadata:
+            labels:
+              app: web
+          spec:
+            containers:
+            - image: os-harbor-svc.default.svc.cloudos:443/library/autotest-cce:v1
+              imagePullPolicy: IfNotPresent
+              name: web-test
+              ports:
+              - containerPort: 80
+                name: web
+                protocol: TCP
+              resources:
+                limits:
+                  cpu: 500m
+                  memory: 200Mi
+                requests:
+                  cpu: 100m
+                  memory: 64Mi
+  - title: "新建daemonset工作负载"
+    type: daemonsets
+    yaml:
+      apiVersion: apps/v1
+      kind: DaemonSet
+      metadata:
+        name: web-testdaemonset
+      spec:
+        selector:
+          matchLabels:
+            app: web
+        template:
+          metadata:
+            labels:
+              app: web
+          spec:
+            containers:
+            - image: os-harbor-svc.default.svc.cloudos:443/library/autotest-cce:v1
+              imagePullPolicy: IfNotPresent
+              name: web-test
+              ports:
+              - containerPort: 80
+                name: web
+                protocol: TCP
+              resources:
+                limits:
+                  cpu: 500m
+                  memory: 200Mi
+                requests:
+                  cpu: 100m
+                  memory: 64Mi
+stop_and_start_workload:
+  - title: "停止和启动deployment工作负载"
+    type: deployments
+    name: nginx-test-deploy
+    yaml:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: nginx-test-deploy
+      spec:
+        selector:
+          matchLabels:
+            app: nginx
+        replicas: 1 
+        template:
+          metadata:
+            labels:
+              app: nginx
+          spec:
+            containers:
+            - name: nginx
+              image: os-harbor-svc.default.svc.cloudos:443/library/autotest-cce:v1
+              ports:
+              - containerPort: 80
+              resources:
+                limits:
+                  cpu: 500m
+                  memory: 200Mi
+                requests:
+                  cpu: 100m
+                  memory: 64Mi  
+  - title: "停止和启动statefulset工作负载"
+    type: statefulsets
+    name: web-statefulset
+    yaml:
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: web-statefulset
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: web
+        template:
+          metadata:
+            labels:
+              app: web
+          spec:
+            containers:
+            - image: os-harbor-svc.default.svc.cloudos:443/library/autotest-cce:v1
+              imagePullPolicy: IfNotPresent
+              name: web-test
+              ports:
+              - containerPort: 80
+                name: web
+                protocol: TCP
+              resources:
+                limits:
+                  cpu: 500m
+                  memory: 200Mi
+                requests:
+                  cpu: 100m
+                  memory: 64Mi
+job_workload:
+  - type: jobs
+    name: test-job
+    yaml:
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: test-job
+      spec:
+        template:
+          metadata:
+            name: test-job
+          spec:
+            containers:
+            - name: test-job
+              image: os-harbor-svc.default.svc.cloudos:443/library/autotest-cce:v1
+              imagePullPolicy: IfNotPresent
+              command: ["echo",  "this is a test job"]
+              resources:
+                limits:
+                  cpu: 200m
+                  memory: 200Mi
+                requests:
+                  cpu: 100m
+                  memory: 64Mi
+            restartPolicy: Never
+cronjob_workload:
+  - type: cronjobs
+    name: autotest-cron
+    yaml:
+      apiVersion: batch/v1beta1
+      kind: CronJob
+      metadata:
+        name: autotest-cron
+      spec:
+        schedule: "* * * * *"
+        jobTemplate:
+          spec:
+            template:
+              spec:
+                containers:
+                - name: autotest-cron
+                  image: os-harbor-svc.default.svc.cloudos:443/library/autotest-cce:v1
+                  imagePullPolicy: IfNotPresent
+                  command:
+                  - /bin/sh
+                  - -c
+                  - date; echo Hello from the Kubernetes cluster
+                  resources:
+                    limits:
+                      cpu: 200m
+                      memory: 200Mi
+                    requests:
+                      cpu: 100m
+                      memory: 64Mi
+                restartPolicy: OnFailure      

@@ -1,14 +1,22 @@
 #### 容器生态系统
 
-容器核心技术：容器在单个host上运行起来的那些技术
+**容器核心技术**：容器在单个host上运行起来的那些技术
+
 1. 容器规范：runtime spec和image format spec
-2. 容器runtime：runtime需要和操作系统kernel紧密协作，为容器提供运行环境。lxc、runc和rkt是目前主流的三种容器runtime
+2. 容器runtime：runtime需要和操作系统kernel紧密协作，为容器提供运行环境。lxc、runc(docker默认的runtime)和rkt是目前主流的三种容器runtime
 3. 容器管理工具：lxd是lxc对应管理工具；runc管理工具是docker engine，docker engine包含后台deamon和cli两个部分；rkt的管理工具是rkt cli
-4. 容器定义工具：允许用户定义容器的内容和属性，docker image是Docker容器的模板；dockerfile包含若干命令的文本文件，可通过这些命令创建docker iamge；ACI与docker image类似，由CoreOS开发的rkt容器的image格式。
-5. Registries：Docker Registry构建私有的Registry；Docker Hub是docker为公众提供的托管Registry；Quay.io与Docker Hub类似。
+4. 容器定义工具：允许用户定义容器的内容和属性
+   - docker image是Docker容器的模板
+   - dockerfile包含若干命令的文本文件，可通过这些命令创建docker iamge
+   - ACI与docker image类似，由CoreOS开发的rkt容器的image格式。
+5. Registries
+   - Docker Registry构建私有的Registry
+   - Docker Hub是docker为公众提供的托管Registry
+   - Quay.io与Docker Hub类似。
 6. 容器OS：专门运行容器的操作系统。如coreos、atomic、ubuntu core
 
-容器平台技术：让容器作为集群在分布式环境中运行
+**容器平台技术**：让容器作为集群在分布式环境中运行
+
 1. 容器编排引擎：基于容器的应用一般会采用微服务架构，基于微服务的应用实际上是一个动态可伸缩的系统，而容器编排引擎是一种高效的方法来管理容器集群
    - docker swarm是docker开发的容器编排引擎
    - kubernetes是Google领导开大的开源容器编排引擎，同时支持Docker和CoreOS容器
@@ -16,7 +24,8 @@
 2. 容器管理平台：架构在容器编排引擎之上的一个更为通用的平台，抽象了编排引擎的底层实现细节，为用户提供更方便的功能。Rancher和ContainerShip是容器管理平台的典型代表
 3. 基于容器的PaaS：为微服务应用开发人员和公司提供了开发、部署和管理应用的平台，使用户不必关心底层基础设施而专注于应用的开发。Deis、Flynn和Dokku都是开源容器PaaS的代表
 
-容器支持技术
+**容器支持技术**
+
 1. 容器网络：docker network是Docker原生的网络解决方案，还可以采用如flannel、weave和calico
 2. 服务发现：保存容器集群中所有微服务最新的信息，并对外提供API，提供服务查询功能。etcd、consul和zookeeper是服务发现的典型解决方案
 3. 监控：docker ps/top/stats是Docker原生的命令行监控工具。sysdig、cAdvisor/Heapster和Weave Scope是其他开源的容器监控方案
@@ -32,58 +41,81 @@ Docker的核心组件包括：
 
 - Docker服务器：Docker Daemon
 
-  - 配置允许任意IP的客户端连接
-
-    ```bash
-    编辑配置文件/etc/systemd/system/multi-user.target.wants/docker.service，/etc/systemd/system/multi-user.target.wants/docker.service
-    ```
-
-  - 重启Docker daemon
-
-    ```bash
-    systemctl daemon-reload
-    systemctl restart docker
-    ```
+  ```bash
+  # 1.docker daemon是服务器组件，以linux后台服务的方式进行
+  systemctl status docker.service
+  # 2.docker daemon运行在docker host，负责创建、运行、监控、构建、存储镜像，默认配置只能响应本地Host的客户端请求。如果要允许远程客户端请求，需要在配置文件中打开TCP监听
+  编辑配置文件：/etc/systemd/system/multi-user.target.wants/docker.service，在环境变量ExecStart后面添加 -H tcp://0.0.0.0,允许来自任意ip的客户端连接
+  # 3.修改完配置重启docker daemon生效
+  systemctl daemon-reload
+  systemctl restart docker
+  # 4.客户端在命令行里加上-H参数，即可与远程服务器通信
+  docker -H 远程客户端ip info
+  ```
 
 - Docker镜像：Image
+
+  ```bash
+  创建docker容器的模板，镜像有多种生成方法：
+  1.从无到有开始创建镜像
+  2.下载现成的镜像
+  3.在现有镜像上创建新的镜像
+  ```
 
 - Docker镜像仓库：Registry
 
 - Docker容器：Container
 
+  ```bash
+  镜像是软件生命周期的构建和打包阶段，而容器是启动、运行阶段
+  ```
+
 #### Docker镜像
 
-##### 镜像的分层结构
-
-最大的好处是共享资源，容器的修改会被限制在单个容器内，镜像内容不会被修改
+- base镜像：1.不依赖其他镜像，从scratch构建；2.其他镜像可以之为基础进行扩展。base镜像通常是各种linux发行版的docker镜像，如Ubuntu Debian，Centos等。
+- 镜像分层结构：构建的镜像是从base镜像一层一层叠加生成。每安装一个软件就在现有镜像的基础上增加一层。最大的好处是**共享资源**
 
 ##### 构建镜像
 
-docker提供了两种构建镜像的方法：docker commit命令和Dockerfile构建文件
+docker提供了两种构建镜像的方法：
 
-###### docker commit
+1. docker commit命令
 
-1.运行容器;2.安装;3.保存为新镜像
+2. Dockerfile构建文件
 
-###### Dockerfile构建文件
+docker commit命令构建新建井包含三个步骤：
+
+1. 运行容器
+2. 修改容器
+3. 保存为新镜像：docker commit CONTAINER [REPOSITORY[:TAG]]
+
+Dockerfile构建镜像
 
 1. 准备Dockerfile文件
 
 2. **docker build -t 镜像名:tag -f dockerfile文件路径**
 
-   注：build context为当前执行构建所在目录，该目录下的所有文件和子目录都会被发送给Docker daemon。不要将多余文件放到build context，特别不要把 /、/usr作为build context，否则构建过程会相当缓慢甚至失败。
+   注：当dockerfile文件路径为`.`时，指明build context为当前目录。不要将多余文件放到build context，特别不要把 /、/usr作为build context，否则构建过程会相当缓慢甚至失败。
 
-###### Dockerfile文件命令详解
+##### Dockerfile常见指令
 
-- FROM xxx：将xxx作为base镜像
+- FROM xxx：指定base镜像
 
-- MAINTAINER:设置镜像的作者，可以是任意字符串
+- MAINTAINER：设置镜像的作者，可以是任意字符串
 
-- COPY 文件 指定目录：将文件从build context复制到镜像
+- COPY：将文件从build context复制到镜像。COPY支持两种形式：
 
-- ADD 文件 指定目录：从build context复制文件到镜像，同的是，如果src是归档文件（tar、zip、tgz、xz等），文件会被自动解压到dest
+  1. COPY src dest
+  2. COPY ["src","dest"]
+
+- ADD：与COPY类似，不同的是，如果src是归档文件（tar,zip,tgz等），文件会自动到解压到dest 
 
 - ENV：设置环境变量，环境变量可被后面的指令使用
+
+  ```bash
+  ENV VERSION 1.6
+  RUN apt-get install -y mypackage=$VERSION
+  ```
 
 - EXPOSE：指定容器中的进程会监听某个端口，Docker可以将该端口暴露出来
 
@@ -104,54 +136,78 @@ docker提供了两种构建镜像的方法：docker commit命令和Dockerfile构
   CMD ["/hello"]	# 启动容器时执行hello文件
   ```
 
-###### RUN vs CMD vs ENTRYPOINT
+RUN vs CMD vs ENTRYPOINT区别
 
-RUN：执行命令并创建新的镜像层，RUN经常用于安装软件包
+- RUN：执行命令并创建新的镜像层，RUN经常用于安装软件包
+- CMD：设置容器启动后默认执行的命令及其参数
+  1. 如果docker run指定了其他命令，CMD指定的默认名了将被忽略。
+  2. 如果dockerfile中有多个CMD指令，只有最后一个CMD有效。
+  3. CMD ["param1","param2"]为ENTRYPOINT提供额外参数时，此时ENTRYPOINT必须使用Exec格式
+- ENTRYPOINT配置容器启动时运行的命令
+  1. ENTRYPOINT指令可让容器以应用程序或者服务的形式运行
+  2. ENTRYPOINT指定要执行的命令和参数不会被忽略，一定会被执行，即使运行docker run时制定了其他命令
+  3. ENTRYPOINT的shell格式会忽略任何CMD或docker run提供的参数
 
-CMD：设置容器启动后默认执行的命令及其参数，但CMD能够被docker run后面跟的命令行参数替换。
+Shell和Exec格式：
 
-CMD：设置容器启动后默认执行的命令及其参数，但CMD能够被docker run后面跟的命令行参数替换。
+都可以使用两种方式指定RUN、CMD和ENTRYPOINT要运行的命令
 
-运行命令格式：
+- shell格式：<instruction> <command>，当指令执行时，shell格式底层会调用 /bin/sh -c [command]
 
-- shell格式：`<instruction> <command>`，当指令执行时，shell格式底层会调用 /bin/sh -c [command]
+  ```bash
+  RUN apt-get install python3
+  CMD echo "Hello world"
+  ENTRYPOINT echo "Hello world"
+  ```
 
-- Exec格式:``<instruction> ["executable", "param1", "param2",...]`，当指令执行时，会直接调用 [command]，不会被shell解析
+- Exec格式：<instruction> ["executable", "param1", "param2",...]，当指令执行时，会直接调用 [command]，不会被shell解析
 
-  注：CMD和ENTRYPOINT推荐使用Exec格式，因为指令可读性更强，更容易理解。RUN则两种格式都可以
+  ```bash
+  ENV name world
+  ENTRYPOINT ["/bin/sh","-c","echo Hello $world"]
+  ```
 
-##### 分发镜像
+注：CMD和ENTRYPOINT推荐使用Exec格式，因为指令可读性更强，更容易理解。RUN则两种格式都可以
 
-如何在多个Docker Host使用镜像
+##### 搭建私有registry
 
-1. 用相同的Dockerfile在其他host构建镜像。
-2. 将镜像上传到公共Registry（比如Docker Hub）, Host直接下载使用。
-3. 搭建私有的Registry供本地Host使用。
+1. 启动registry容器
 
-搭建私有registry：https://docs.docker.com/registry/configuration/
+   ```bash
+   docker run -d -p 5000:5000 --restart always --name registry registry:2
+   # 验证安装：使用浏览器访问http://<your-server-ip>:5000/v2/_catalog
+   ```
+
+2. 上传镜像到registry
+
+   ```bash
+   # 通过docker tag重命名镜像，使之与registry匹配(<your-server-ip>:5000/<your-image>:<tag>上传到指定镜像仓库的固定格式)
+   docker tag <your-image>:<tag> <your-server-ip>:5000/<your-image>:<tag>
+   # 上传镜像
+   docker pull <your-server-ip>:5000/<your-image>:<tag>
+   ```
+
+参开文档：https://docs.docker.com/registry/configuration/
 
 ##### 镜像操作常用命令
 
 ```bash
 docker images	# 显示镜像列表
+docker rmi 镜像ID	# 删除docker host中的镜像，如果一个镜像对应多个tag，只有当最后一个tag被删除时，镜像才真正删除
 docker history 镜像ID	# 显示镜像构建历史
+docker search 镜像名称:tag	# 搜索Docker Hub中的镜像
 docker commit [OPTIONS] CONTAINER [REPOSITORY[:TAG]]	# 从容器创建新镜像
 docker build -t 镜像名:tag -f dockerfile文件路径	# 从Dockerfile构建镜像
 docker tag SOURCE_IMAGE[:TAG] TARGET_IMAGE[:TAG]	# 给镜像打tag
 docker pull [选项] [Docker镜像地址[:端口号]/] 仓库名[:标签]	# 从registry下载镜像
 docker push	[选项] [Docker镜像地址[:端口号]/] 仓库名[:标签]	# 将镜像上传到registry
 docker image rm [选项] <镜像1> [<镜像2> ...]	# 删除Docker host中的镜像
-docker search 镜像名称:tag	# 搜索Docker Hub中的镜像
+
 docker save -o mycontainer.tar mycontainer:latest	# 导出为压缩文件
 docker load -i mycontainer.tar	# 导入压缩文件
 ```
 
 #### Docker容器
-
-##### 容器底层技术
-
-- cgroup全称Control Group。Linux操作系统通过cgroup可以设置进程使用CPU、内存和IO资源的限额。在 /sys/fs/cgroup/cpu/docker、/sys/fs/cgroup/memory/docker和 /sys/fs/cgroup/blkio/docker中分别保存的是cpu相关、内存以及Block IO的cgroup配置
-- namespace实现了容器间资源的隔离，Linux使用了6种namespace，分别对应6种资源：Mount、UTS、IPC、PID、Network和User
 
 ##### 运行容器
 
@@ -172,12 +228,33 @@ docker load -i mycontainer.tar	# 导入压缩文件
    --rm	# 如果容器为exit状态，会自动删除创建的容器
    --net	# 指定要加入的网络
    -v	# 将本地文件和容器文件进行映射
-   -m	# 设置内存的使用限额，只指定 -m而不指定--memory-swap，那么--memory-swap默认为-m的两倍
-   --memory-swap	# 设置内存+swap的使用限额
+   
+   # 限制容器对内存的使用，与操作系统类似，容器可使用的内存包括两部分：物理内存和sqap。
+   -m或-memory：设置内存的使用限额。只指定-m而不指定--memory-swap，那么--memory-swap默认为-m的两倍
+   --memory-swap：设置内存+swap的使用限额
    --vm 1	# 启动1个内存工作线程
    --vm-bytes 280M	# 每个线程分配280MB内存
-   -c或 --cpu-shares	# 设置容器使用CPU的权重。如果不指定，默认值为1024。
+   
+   # 限制容器对CPU的使用
+   -c或--cpu-shares：docker可以通过-c或--cpu-shares设置容器使用CPU的权重。如果不指定，默认为1024
+   
+   # 限制容器的Black IO(磁盘的读写)
+   --blkio-weight：docker可通过设置权重、限制bps和iops的方式控制容器读写磁盘的带宽，默认为500
    ```
+
+进入容器的两种方法：
+
+1. docker attach
+   - 直接进入容器启动命令终端，不会启动新的进程
+   - 如果想直接在终端中查看启动命令的输出，用attach；其他情况使用exec
+2. docker exec
+   - exec在容器中打开新的终端，并且可以启动新的进程
+     - docker exec -it <container> bash|sh 是执行exec最常用的方式
+
+##### 容器底层技术
+
+- cgroup全称Control Group。Linux操作系统通过cgroup可以设置进程使用CPU、内存和IO资源的限额。在 /sys/fs/cgroup/cpu/docker、/sys/fs/cgroup/memory/docker和 /sys/fs/cgroup/blkio/docker中分别保存的是cpu相关、内存以及Block IO的cgroup配置
+- namespace实现了容器间资源的隔离，Linux使用了6种namespace，分别对应6种资源：Mount、UTS、IPC、PID、Network和User
 
 ##### 容器操作常用命令
 
@@ -187,6 +264,7 @@ docker logs -f 容器ID	# 查看容器运行日志，-f表示实时查看
 docker kill/stop/start/restart 容器ID	# 快速停止/停止/启动/重启容器
 docker pause/unpause 容器ID	# 暂停/恢复运行容器
 docker create/rm 容器ID	# 创建/删除容器
+docker rm -v $(docker ps -aq -f status=exited)	# 批量删除所有已经退出的容器
 docker history 容器ID # 查看容器运行的历史记录
 docker inspect 容器ID	# 查看容器的配置和状态信息
 docker cp xx.html ContainID://user/share/nginx/xx.html	# 拷贝本机xx.html到容器下
@@ -198,18 +276,20 @@ docker stats ContainID # 查看容器的资源信息
 
 docker安装时会自动在host上创建三个网络
 
-1. none网络：什么都没有的网络，容器创建时，可以通过--network=none指定使用none网络。一般用于安全性要求高并且不需要联网的应用
-2. host网络：容器的网络配置与host完全一样。可以通过 --network=host指定使用host网络。
-3. bridge网络：Docker安装时会创建一个命名为docker0的Linux bridge。如果不指定--network，创建的容器默认都会挂到docker0上。
+- none网络：什么都没有的网络，挂载这个网络下的容器除了lo，没有其他任何网卡。容器创建时，可以通过--network=none指定使用none网络。一般用于安全性要求高并且不需要联网的应用
+
+- host网络：连接到host网络的容器共享Docker Host的网络线，容器的网络配置与host完全一样。可以通过 --network=host指定使用host网络。
+
+- bridge网络：Docker安装时会创建一个命名为docker0的Linux bridge。如果不指定--network，创建的容器默认都会挂到docker0上。
 
 除了自动创建的网络，用户可以根据业务需要创建user-defined网络
 
-4. user-defined网络：有三种网络驱动，bridge、overlay和macvlan，overlay和macvlan用于创建跨主机的网络
+- user-defined网络：有三种网络驱动，bridge、overlay和macvlan，overlay和macvlan用于创建跨主机的网络
 
 ##### 容器间通信
 
 1. IP通信：两个容器要能通信，必须要有属于同一个网络的网卡。不同网络的容器间通信，通过docker network connect将现有容器加入到指定网络
-2. Docker DNS Server：从Docker 1.10版本开始，docker daemon实现了一个内嵌的DNS server，使容器可以直接通过“容器名”通信。**使用docker DNS有个限制：只能在user-defined网络中使用。**
+2. Docker DNS Server：从Docker 1.10版本开始，docker daemon实现了一个内嵌的DNS server，使容器可以直接通过“容器名”通信。只要在启动时用--name为容器命名就可以了。**使用docker DNS有个限制：只能在user-defined网络中使用。**默认的bridge网络是无法使用DNS的。
 3.  joined容器：先创建一个容器，名字为web1。然后创建另一个容器并通过 **--network=container:web1**指定joined容器为web1。这两个容器共享相同的网络栈
 
 ##### 常见命令
@@ -217,13 +297,14 @@ docker安装时会自动在host上创建三个网络
 ```bash
 docker network ls	# 查看host有的网络类型
 docker network inspect bridge	# bridge网络的配置信息
-docker network create my_net	# 创建网络(默认bridge驱动)
+docker network create --driver bridge my_net	# 创建bridge类型网络my_net
 # 创建网络指定IP网段。使用--subnet和--gateway 参数
 docker network create --subnet 172.22.16.0/24 --gateway 172.22.16.1 my_net
 # 运行容器指定网络及分配IP。使用--network和--ip参数
 docker run -it --network=my_net --ip 172.22.16.8 my_net	
 # 不同网络的容器间通信使用docker network connect命令实现
-docker network connect my_net 容器ID	
+docker network connect my_net 容器ID	# 把容器加入网卡，和该网卡中的容器实现ip通信
+docker run -it --network=container:web1 httpd	# 通过join容器web1，实现web1和httpd通信
 ```
 
 #### Docker存储

@@ -1,0 +1,113 @@
+# 测试用例：创建应用组
+test_create_gateway:
+  -
+    title: "普通用户 -- 创建服务网关"
+    container_spec:
+      cpu_request: "0.5"
+      mem_request: "0.5Gi"
+      cpu_limit: "2"
+      mem_limit: "2Gi"
+    storage_class: "auto"
+    data_volume: "5Gi"
+
+
+# 测试用例：发布网关接口
+test_create_api:
+  -
+    title: "普通用户 -- 发布接口"
+    svc_params:
+      app_message: "app-a is ok"
+      svc_protocol: "http"
+      svc_method: "GET"
+      svc_path: "/a"
+    kong_params:
+      kong_protocol: "http"
+      kong_method: "GET"
+      kong_path: "/api"
+
+
+# 测试用例：接口版本管理
+test_create_api_versions:
+  -
+    title: "普通用户 -- 创建接口版本管理"
+    app_message: "app-a 20444 is ok"
+    svc_path: "/a"
+    items_header:
+      -
+        "k1:v1"
+
+# 测试用例：创建流控策略
+test_create_flow_control:
+  -
+    title: "普通用户 -- 创建流控策略（按接口）"
+    limit_by: "service"
+    per_sec: "1"
+    per_min: "10"
+    per_hour: "100"
+    per_day: "1000"
+  -
+    title: "普通用户 -- 创建流控策略（按项目）"
+    limit_by: "project"
+    per_sec: "1"
+    per_min: "10"
+    per_hour: "100"
+    per_day: "1000"
+  -
+    title: "普通用户 -- 创建流控策略（按凭证）"
+    limit_by: "consumer"
+    per_sec: "1"
+    per_min: "10"
+    per_hour: "100"
+    per_day: "1000"
+  -
+    title: "普通用户 -- 创建流控策略（按IP）"
+    limit_by: "ip"
+    per_sec: "1"
+    per_min: "10"
+    per_hour: "100"
+    per_day: "1000"
+
+
+# 测试用例：创建安全控制策略
+test_create_access_control:
+  -
+    title: "普通用户 -- 创建安全控制策略（按接口）"
+    limit_type: "rule"
+    items_header:
+      -
+        "k1:v1"
+
+
+######## 初始化 ########
+
+# 初始化： 创建接口
+setup_create_apis:
+  -
+    container_spec:
+      cpu_request: "0.5"
+      mem_request: "0.5Gi"
+      cpu_limit: "2"
+      mem_limit: "2Gi"
+    storage_class: "auto"
+    data_volume: "5Gi"
+    svc_params:
+      app_message: "app-a is ok"
+      svc_protocol: "http"
+      svc_method: "GET"
+      svc_path: "/a"
+    kong_params:
+      kong_protocol: "http"
+      kong_method: "GET"
+      kong_path: "/apis"
+
+
+# 初始化： 创建服务网关
+setup_create_gateway:
+  -
+    container_spec:
+      cpu_request: "0.5"
+      mem_request: "0.5Gi"
+      cpu_limit: "2"
+      mem_limit: "2Gi"
+    storage_class: "auto"
+    data_volume: "5Gi"

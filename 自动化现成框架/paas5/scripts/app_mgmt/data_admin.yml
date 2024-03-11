@@ -1,0 +1,507 @@
+# 测试用例：创建应用组
+test_create_app_group:
+-
+  title: "系统管理员 -- 新建Spring Cloud应用组"
+  engine_type: "Spring Cloud"
+-
+  title: "系统管理员 -- 新建Istio应用组"
+  engine_type: "Istio"
+-
+  title: "系统管理员 -- 新建自定义应用组"
+  engine_type: "others"
+
+
+# 测试用例：停止/启动部署有war包的自定义应用组
+test_action_app_group_with_war:
+-
+  title: "系统管理员 -- 停止/启动部署有war包的自定义应用组"
+  action_stop: "stop"
+  action_start: "start"
+
+
+# 测试用例：创建基于Spring Cloud微服务引擎的jar应用
+test_create_jar_app_with_spring_cloud:
+-
+  title: "系统管理员 -- 在基于Spring Cloud微服务引擎的应用组中部署jar包"
+  deploy_type: "传统方式部署"
+  resource_type: "容器集群"
+  app_type: "无状态应用"
+  cluster_info:
+    cluster_type: "独享集群"
+  repository: "公有"
+  container_spec:
+    cpu_request: "0.5"
+    mem_request: "512Mi"
+    cpu_limit: "1"
+    mem_limit: "1024Mi"
+  jdk_version: "1.8"
+  # 服务访问控制
+  svc_access_control:
+    dns_policy: "集群外访问"
+    targetPort: 20111
+    port: 20111
+  # 应用相关信息：所在IP，登录的用户名和密码，对外提供的访问接口，接口返回的信息
+  app_svc_info:
+    app_uri: "/a"
+    app_message: "app-a is ok"
+
+
+# 测试用例：重启/停止/启动容器镜像包的应用
+test_action_app_with_image:
+  -
+    title: "系统管理员 -- 重启/停止/启动容器镜像包的应用"
+    action_restart: "restart"
+    action_stop: "stop"
+    action_start: "start"
+
+# 测试用例：升级和回滚jar包应用
+test_upgrade_and_rollback_jar_app:
+  -
+    title: "系统管理员 -- 升级和回滚jar包应用"
+    repository: "公有"
+    # 应用相关信息：所在IP，登录的用户名和密码，对外提供的访问接口，接口返回的信息
+    app_svc_info:
+      app_uri: "/a"
+      app_message: "app-a v2 is ok"
+
+# 测试用例：创建war应用
+test_create_war_app:
+  -
+    title: "系统管理员 -- 在自定义应用组中部署war包"
+    engine_type: "others"
+    deploy_type: "传统方式部署"
+    resource_type: "容器集群"
+    app_type: "无状态应用"
+    cluster_info:
+      cluster_type: "独享集群"
+    repository: "公有"
+    container_spec:
+      cpu_request: "0.5"
+      mem_request: "512Mi"
+      cpu_limit: "1"
+      mem_limit: "1024Mi"
+    tomcat_version: "8.5"
+    jdk_version: "1.8"
+    # 服务访问控制
+    svc_access_control:
+      dns_policy: "集群外访问"
+      targetPort: 8080
+      port: 18080
+    # 应用相关信息：所在IP，登录的用户名和密码，对外提供的访问接口，接口返回的信息
+    app_svc_info:
+      app_uri: "/demo-v1/"
+      app_message: "*********** v1 ***********"
+  -
+    title: "系统管理员 -- 在自定义应用组中部署war包"
+    engine_type: "others"
+    deploy_type: "传统方式部署"
+    resource_type: "容器集群"
+    app_type: "无状态应用"
+    cluster_info:
+      cluster_type: "独享集群"
+    repository: "私有"
+    container_spec:
+      cpu_request: "0.5"
+      mem_request: "512Mi"
+      cpu_limit: "1"
+      mem_limit: "1024Mi"
+    tomcat_version: "8.5"
+    jdk_version: "1.8"
+    # 服务访问控制
+    svc_access_control:
+      dns_policy: "集群外访问"
+      targetPort: 8080
+      port: 18080
+    # 应用相关信息：所在IP，登录的用户名和密码，对外提供的访问接口，接口返回的信息
+    app_svc_info:
+      app_uri: "/demo-v1/"
+      app_message: "*********** v1 ***********"
+
+
+# 测试用例：创建前端包应用
+test_create_front_app:
+  -
+    title: "系统管理员 -- 在自定义应用组的前端包应用"
+    engine_type: "others"
+    deploy_type: "传统方式部署"
+    resource_type: "容器集群"
+    app_type: "无状态应用"
+    cluster_info:
+      cluster_type: "独享集群"
+    repository: "公有"
+    container_spec:
+      cpu_request: "0.5"
+      mem_request: "512Mi"
+      cpu_limit: "1"
+      mem_limit: "1024Mi"
+    tomcat_version: "8.5"
+    jdk_version: "1.8"
+    nginx_version: "1.20"
+    # 服务访问控制
+    svc_access_control:
+      dns_policy: "集群外访问"
+      targetPort: 80
+      port: 10808
+    # 应用相关信息：所在IP，登录的用户名和密码，对外提供的访问接口，接口返回的信息
+    app_svc_info:
+      app_uri: "/"
+      app_message: "We're sorry but vue-demo doesn't work properly without JavaScript enabled"
+
+
+# 测试用例：部署helm包
+test_create_helm_app:
+  -
+    title: "系统管理员 -- 在自定义应用组中部署helm包"
+    application_name: "appa"
+    engine_type: "others"
+    deploy_type: "传统方式部署"
+    resource_type: "容器集群"
+    cluster_info:
+      cluster_type: "独享集群"
+    repository: "公有"
+    container_spec:
+      quota_cpu: "2"
+    # quota_memory单位为Mi
+      quota_memory: "4096"
+      quota_storage: "10"
+    # 应用相关信息：所在IP，登录的用户名和密码，对外提供的访问接口，接口返回的信息
+    app_svc_info:
+      app_uri: "/a"
+      app_message: "app-a is ok"
+
+
+# 测试用例：部署容器镜像应用
+test_create_image_app:
+  -
+    title: "系统管理员 -- 部署容器镜像应用"
+    engine_type: "Istio"
+    deploy_type: "传统方式部署"
+    resource_type: "容器集群"
+    app_type: "无状态应用"
+    cluster_info:
+      cluster_type: "独享集群"
+    repository: "公有"
+    container_spec:
+      cpu_request: "0.5"
+      mem_request: "512Mi"
+      cpu_limit: "1"
+      mem_limit: "1024Mi"
+    # 服务访问控制
+    svc_access_control:
+      dns_policy: "集群外访问"
+      targetPort: 8080
+      port: 18080
+    # 应用相关信息：所在IP，登录的用户名和密码，对外提供的访问接口，接口返回的信息
+    app_svc_info:
+      app_uri: "/"
+      app_message: "you've successfully installed Tomcat"
+
+# 测试用例：批量删除应用
+test_delete_apps_patch:
+  -
+    title: "系统管理员 -- 批量删除应用"
+    delete_pvc: "true"
+
+
+# 测试用例：部署jar包应用并挂在存储卷
+test_create_jar_app_with_storage:
+-
+  title: "系统管理员 -- 部署jar包应用并挂在存储卷"
+  deploy_type: "传统方式部署"
+  resource_type: "容器集群"
+  app_type: "无状态应用"
+  cluster_info:
+    cluster_type: "独享集群"
+  repository: "公有"
+  container_spec:
+    cpu_request: "0.5"
+    mem_request: "512Mi"
+    cpu_limit: "1"
+    mem_limit: "1024Mi"
+  jdk_version: "1.8"
+  # 服务访问控制
+  svc_access_control:
+    dns_policy: "集群外访问"
+    targetPort: 20333
+    port: 20333
+  # 应用相关信息：所在IP，登录的用户名和密码，对外提供的访问接口，接口返回的信息
+  app_svc_info:
+    app_uri: "/a"
+    app_message: "app-a is ok"
+  pv:
+  -
+    type: "动态供给"
+    storage_class: "auto"
+    capacity: "10MB"
+    access_mode: "单节点读写"
+    container_path: "/opt/test"
+
+
+########### MCP用例 ##########
+# 测试用例：在MCP创建基于Spring Cloud微服务引擎的jar应用
+test_create_jar_app_with_spring_cloud_on_mcp:
+  -
+    title: "系统管理员 -- Spring Cloud应用组+jar+MCP"
+    deploy_type: "传统方式部署"
+    resource_type: "MCP"
+    app_type: "无状态应用"
+    cluster_info:
+      cluster_type: "MCP集群"
+    repository: "公有"
+    container_spec:
+      cpu_request: "0.5"
+      mem_request: "512Mi"
+      cpu_limit: "1"
+      mem_limit: "1024Mi"
+    jdk_version: "1.8"
+    # 服务访问控制
+    svc_access_control:
+      dns_policy: "集群外访问"
+      targetPort: 20111
+      port: 20111
+    # 应用相关信息：所在IP，登录的用户名和密码，对外提供的访问接口，接口返回的信息
+    app_svc_info:
+      app_uri: "/a"
+      app_message: "app-a is ok"
+
+# 测试用例：在MCP创建war应用
+test_create_war_app_on_mcp:
+  -
+    title: "系统管理员 -- 自定义应用组+公有+war+MCP"
+    engine_type: "others"
+    deploy_type: "传统方式部署"
+    resource_type: "MCP"
+    app_type: "无状态应用"
+    cluster_info:
+      cluster_type: "MCP集群"
+    repository: "公有"
+    container_spec:
+      cpu_request: "0.1"
+      mem_request: "128Mi"
+      cpu_limit: "0.2"
+      mem_limit: "512Mi"
+    tomcat_version: "8.5"
+    jdk_version: "1.8"
+    # 服务访问控制
+    svc_access_control:
+      dns_policy: "集群外访问"
+      targetPort: 8080
+      port: 18080
+    # 应用相关信息：所在IP，登录的用户名和密码，对外提供的访问接口，接口返回的信息
+    app_svc_info:
+      app_uri: "/demo-v1/"
+      app_message: "*********** v1 ***********"
+  -
+    title: "系统管理员 -- 自定义应用组+私有+war+MCP"
+    engine_type: "others"
+    deploy_type: "传统方式部署"
+    resource_type: "MCP"
+    app_type: "无状态应用"
+    cluster_info:
+      cluster_type: "MCP集群"
+    repository: "私有"
+    container_spec:
+      cpu_request: "0.1"
+      mem_request: "128Mi"
+      cpu_limit: "0.2"
+      mem_limit: "512Mi"
+    tomcat_version: "8.5"
+    jdk_version: "1.8"
+    # 服务访问控制
+    svc_access_control:
+      dns_policy: "集群外访问"
+      targetPort: 8080
+      port: 18080
+    # 应用相关信息：所在IP，登录的用户名和密码，对外提供的访问接口，接口返回的信息
+    app_svc_info:
+      app_uri: "/demo-v1/"
+      app_message: "*********** v1 ***********"
+
+
+# 测试用例：在MCP创建前端包应用
+test_create_front_app_on_mcp:
+  -
+    title: "系统管理员 -- 自定义应用组+公有+前端应用+MCP"
+    engine_type: "others"
+    deploy_type: "传统方式部署"
+    resource_type: "MCP"
+    app_type: "无状态应用"
+    cluster_info:
+      cluster_type: "MCP集群"
+    repository: "公有"
+    container_spec:
+      cpu_request: "0.5"
+      mem_request: "512Mi"
+      cpu_limit: "1"
+      mem_limit: "1024Mi"
+    tomcat_version: "8.5"
+    jdk_version: "1.8"
+    nginx_version: "1.20"
+    # 服务访问控制
+    svc_access_control:
+      dns_policy: "集群外访问"
+      targetPort: 80
+      port: 10808
+    # 应用相关信息：所在IP，登录的用户名和密码，对外提供的访问接口，接口返回的信息
+    app_svc_info:
+      app_uri: "/"
+      app_message: "We're sorry but vue-demo doesn't work properly without JavaScript enabled"
+
+
+# 测试用例：在MCP部署容器镜像应用
+test_create_image_app_on_mcp:
+  -
+    title: "系统管理员 -- 容器镜像应用+MCP"
+    engine_type: "Istio"
+    deploy_type: "传统方式部署"
+    resource_type: "MCP"
+    app_type: "无状态应用"
+    cluster_info:
+      cluster_type: "MCP集群"
+    repository: "公有"
+    container_spec:
+      cpu_request: "0.5"
+      mem_request: "512Mi"
+      cpu_limit: "1"
+      mem_limit: "1024Mi"
+    # 服务访问控制
+    svc_access_control:
+      dns_policy: "集群外访问"
+      targetPort: 8080
+      port: 18080
+    # 应用相关信息：所在IP，登录的用户名和密码，对外提供的访问接口，接口返回的信息
+    app_svc_info:
+      app_uri: "/"
+      app_message: "you've successfully installed Tomcat"
+
+#############  初始化 #############
+
+# 初始化：用于在基于Spring Cloud微服务引擎的应用组中部署jar包
+setup_create_jar_app_with_spring_cloud:
+  -
+    container_spec:
+      cpu_request: "0.5"
+      mem_request: "512Mi"
+      cpu_limit: "1"
+      mem_limit: "1024Mi"
+    # 服务访问控制
+    svc_access_control:
+      dns_policy: "集群外访问"
+      targetPort: 20111
+      port: 20111
+    # 应用相关信息：所在IP，登录的用户名和密码，对外提供的访问接口，接口返回的信息
+    app_svc_info:
+      app_uri: "/a"
+      app_message: "app-a is ok"
+
+# 初始化：用于Istio或自定义应用组中部署jar包
+setup_create_jar_app:
+  -
+    container_spec:
+      cpu_request: "0.5"
+      mem_request: "512Mi"
+      cpu_limit: "1"
+      mem_limit: "1024Mi"
+    # 服务访问控制
+    svc_access_control:
+      dns_policy: "集群外访问"
+      targetPort: 20333
+      port: 20333
+    # 应用相关信息：所在IP，登录的用户名和密码，对外提供的访问接口，接口返回的信息
+    app_svc_info:
+      app_uri: "/a"
+      app_message: "app-a is ok"
+
+# 初始化：部署war包
+setup_create_war_app:
+  -
+    container_spec:
+      cpu_request: "0.5"
+      mem_request: "512Mi"
+      cpu_limit: "1"
+      mem_limit: "1024Mi"
+    # 服务访问控制
+    svc_access_control:
+      dns_policy: "集群外访问"
+      targetPort: 8080
+      port: 18080
+    # 应用相关信息：所在IP，登录的用户名和密码，对外提供的访问接口，接口返回的信息
+    app_svc_info:
+      app_uri: "/demo-v1/"
+      app_message: "*********** v1 ***********"
+
+# 初始化：部署前端包
+setup_create_front_app:
+  -
+    container_spec:
+      cpu_request: "0.5"
+      mem_request: "512Mi"
+      cpu_limit: "1"
+      mem_limit: "1024Mi"
+    # 服务访问控制
+    svc_access_control:
+      dns_policy: "集群外访问"
+      targetPort: 80
+      port: 10808
+    # 应用相关信息：所在IP，登录的用户名和密码，对外提供的访问接口，接口返回的信息
+    app_svc_info:
+      app_uri: "/"
+      app_message: "We're sorry but vue-demo doesn't work properly without JavaScript enabled"
+
+# 初始化：部署helm包
+setup_create_helm_app:
+  -
+    application_name: "appa"
+    container_spec:
+      quota_cpu: "2"
+      quota_memory: "4096"
+      quota_storage: "10"
+    # 应用相关信息：所在IP，登录的用户名和密码，对外提供的访问接口，接口返回的信息
+    app_svc_info:
+      app_uri: "/a"
+      app_message: "app-a is ok"
+
+# 初始化：部署容器镜像包
+setup_create_image_app:
+  -
+    container_spec:
+      cpu_request: "0.5"
+      mem_request: "512Mi"
+      cpu_limit: "1"
+      mem_limit: "1024Mi"
+    # 服务访问控制
+    svc_access_control:
+      dns_policy: "集群外访问"
+      targetPort: 8080
+      port: 18080
+    # 应用相关信息：所在IP，登录的用户名和密码，对外提供的访问接口，接口返回的信息
+    app_svc_info:
+      app_uri: "/"
+      app_message: "you've successfully installed Tomcat"
+
+# 初始化：部署两个应用包（war包&前端包）
+setup_create_war_and_front_app:
+  -
+    container_spec:
+      cpu_request: "0.5"
+      mem_request: "512Mi"
+      cpu_limit: "1"
+      mem_limit: "1024Mi"
+    # 服务访问控制
+    svc_access_control:
+      war:
+        dns_policy: "集群外访问"
+        targetPort: 8080
+        port: 18080
+      front:
+        dns_policy: "集群外访问"
+        targetPort: 80
+        port: 10808
+    # 应用相关信息：所在IP，对外提供的访问接口，返回的信息
+    app_svc_info:
+      war:
+        app_uri: "/demo-v1/"
+        app_message: "*********** v1 ***********"
+      front:
+        app_uri: "/"
+        app_message: "We're sorry but vue-demo doesn't work properly without JavaScript enabled"

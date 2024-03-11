@@ -1,0 +1,26 @@
+create_project:
+  -
+    title: "新建项目"
+    description: "这是一个测试项目"
+
+create_user:
+  -
+    title: "新建项目管理员用户" 
+    nickname: "proman123"
+    role: "org_admin"
+    passwd: "NcuyzbwXd/IpOBNRg5hhfgYJdgA4nV0/nIlg0aGg5ceTjeAiDS23//1Bp4wW6urXrPAWOyhSw5+g/LVjyuAbdTBU/sMvmxaraOQjeBv2jFHIDkTfhD3PycK0yLM8YY7v84TDnXYyKUvfJfZyQ6C2Gg2UyjdioySb4rVyZgObgtc="
+    email: "test@12.com"
+  -
+    title: "新建普通用户"
+    nickname: "ptuser345"
+    role: "user"
+    passwd: "NcuyzbwXd/IpOBNRg5hhfgYJdgA4nV0/nIlg0aGg5ceTjeAiDS23//1Bp4wW6urXrPAWOyhSw5+g/LVjyuAbdTBU/sMvmxaraOQjeBv2jFHIDkTfhD3PycK0yLM8YY7v84TDnXYyKUvfJfZyQ6C2Gg2UyjdioySb4rVyZgObgtc="
+    email: "test@13.com"
+modify_project_quota:
+  -
+    title: "修改项目配额"
+    cpu_quota: 100
+    mem_quota: 300
+    store_quota: 200
+
+

@@ -1,0 +1,23 @@
+creat_access_token:
+  - title: 新建harbor用户访问凭证
+    fullname: qwer1234
+    passwd: 1qaz@WSX
+    mail: asdf@12.com
+    comment: "qwer"
+upload_public_img:
+  - title: "上传公有镜像"
+    description: ""
+    version: v1
+    filepath: "E:\\2023\\01 images\\autotest-cce.tar"
+upload_private_img:
+  - title: "上传私有镜像"
+    description: "asdfwer"
+    version: v1
+    filepath: "E:\\2023\\01 images\\autotest-cce.tar"
+reset_passwd:
+  - title: "重置访问凭证密码"
+    fullname: qwer1234
+    passwd: 1qaz@WSX
+    mail: asdf@12.com
+    comment: "qwer"
+    NewPasswd: Qwer1234Q

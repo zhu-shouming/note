@@ -1,0 +1,8 @@
+report
+*/__pycache__
+venv
+*/*cache
+.idea
+.pytest_cache
+.vscode
+*.pyc
