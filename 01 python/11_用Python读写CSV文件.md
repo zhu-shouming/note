@@ -1,4 +1,4 @@
-## 第23课：用Python读写CSV文件
+## 用Python读写CSV文件
 
 ### CSV文件介绍
 

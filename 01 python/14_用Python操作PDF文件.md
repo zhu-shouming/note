@@ -1,4 +1,4 @@
-## 第27课：用Python操作PDF文件
+## 用Python操作PDF文件
 
 PDF是Portable Document Format的缩写，这类文件通常使用`.pdf`作为其扩展名。在日常开发工作中，最容易遇到的就是从PDF中读取文本内容以及用已有的内容生成PDF文档这两个任务。
 

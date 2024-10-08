@@ -1,4 +1,4 @@
-## 第24课：用Python读写Excel文件-1
+## 用Python读写Excel文件-1
 
 ### Excel简介
 
